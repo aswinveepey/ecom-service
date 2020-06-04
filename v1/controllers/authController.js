@@ -9,12 +9,12 @@ function createAuth(req, res){
   const {username, password} = req.body;
   if (username === "admin@littech.in") {
     if (password === "secret") {
-      return res.status(200).json("Authentication Succesful");
+      return res.status(200).json({ message: "Authentication Succesful" });
     } else {
-      return res.status(401).json("Password Error");
+      return res.status(401).json({ message: "Password Error" });
     }
   } else {
-    return res.status(401).json("Username Error");
+    return res.status(401).json({ message: "Username Error" });
   }
 
 }

@@ -77,3 +77,13 @@
 2020-06-04 07:06:43,549 INFO spawned: 'nginx' with pid 9
 2020-06-04 07:06:44,572 INFO success: hyssrestservice entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
 2020-06-04 07:06:44,573 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2020-06-04 07:14:12,781 WARN received SIGTERM indicating exit request
+2020-06-04 07:14:12,787 INFO waiting for hyssrestservice, nginx to die
+2020-06-04 07:14:12,819 INFO stopped: nginx (exit status 0)
+2020-06-04 07:14:12,836 INFO stopped: hyssrestservice (terminated by SIGTERM)
+2020-06-04 07:14:16,547 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2020-06-04 07:14:16,557 INFO supervisord started with pid 1
+2020-06-04 07:14:17,567 INFO spawned: 'hyssrestservice' with pid 8
+2020-06-04 07:14:17,576 INFO spawned: 'nginx' with pid 9
+2020-06-04 07:14:18,622 INFO success: hyssrestservice entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2020-06-04 07:14:18,623 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
