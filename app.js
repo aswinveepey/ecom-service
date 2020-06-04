@@ -4,8 +4,11 @@ const bodyParser = require("body-parser");
 var app = express();
 var cors = require("cors");
 
-//get versioned routes
-const routerV1 = require('./v1/routes/index');
+//env config
+require("dotenv").config();
+
+//db config
+require('./v1/db/db')
 
 //import auth middleware
 // const {auth} = require("./v1/middlewares/authMiddleware");
@@ -17,6 +20,9 @@ app.use(express.urlencoded({ extended: false }));
 
 //cors
 app.use(cors());
+
+//get versioned routes
+const routerV1 = require('./v1/routes/index');
 
 /**
  * Swagger related setup
@@ -38,8 +44,6 @@ app.use(bodyParser.json())
  */
 app.use("/api/v1", routerV1);
 
-app.listen(3002, () =>
-  console.log(
-    `Service ready & listening at port: 3002`
-  )
+app.listen(process.env.SERVICE_PORT, () =>
+  console.log(`Service ready & listening at port: ` + process.env.SERVICE_PORT)
 );
