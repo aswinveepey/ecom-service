@@ -2,6 +2,7 @@ var express = require('express');
 var logger = require('morgan');
 const bodyParser = require("body-parser");
 var app = express();
+var cors = require("cors");
 
 //get versioned routes
 const routerV1 = require('./v1/routes/index');
@@ -13,6 +14,9 @@ const routerV1 = require('./v1/routes/index');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+//cors
+app.use(cors());
 
 /**
  * Swagger related setup

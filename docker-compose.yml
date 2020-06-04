@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+
+  hyss-inframart-service:
+    build: ./
+    ports:
+      - "3002:80"
+    volumes:
+      - ".:/hyss-inframart-service"
+    environment:
+      NODE_ENV: development
+      ENVIRONMENT: development
+      PORT: 3000
+      DB_HOST: host.docker.internal
+      DB_USER: root
+      DB_PASSWORD: labrador
+      DB_NAME: hyss-inframart
+      HOST: '127.0.0.1'
