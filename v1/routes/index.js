@@ -1,8 +1,11 @@
 var express = require("express");
 const routes = express.Router();
 const { authRouter } = require("./authRoutes");
+const { dashRouter } = require("./dashRoutes");
+const {auth} = require('../middlewares/auth')
 
-routes.use("/authenticate", authRouter);
+routes.use("/auth", authRouter);
+routes.use("/dash",auth, dashRouter);
 //Swagger
 /**
  * @swagger

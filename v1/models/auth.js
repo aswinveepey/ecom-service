@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 
 const AuthScehema = mongoose.Schema({
   username: {
+    unique: true,
     type: String,
     required: true,
     trim: true,
@@ -14,6 +15,7 @@ const AuthScehema = mongoose.Schema({
   mobilenumber: {
     type: String,
     required: true,
+    unique: true,
   },
   email: {
     type: String,
@@ -42,11 +44,11 @@ const AuthScehema = mongoose.Schema({
       },
     },
   ],
-  status:{
+  status: {
     type: Boolean,
     required: true,
-    default: true
-  }
+    default: true,
+  },
 });
 
 AuthScehema.pre("save", async function (next) {
@@ -79,6 +81,25 @@ AuthScehema.statics.usernameAuth = async (username, password) => {
   }
   return auth;
 };
+
+// AuthScehema.statics.createAuth = async (username, password, email, mobilenumber) => {
+//   // Search for a user by email and password.
+//   const auth = await authModel.findOne({
+//     $or: [
+//       { username: username },
+//       { email: email },
+//       { mobilenumber: mobilenumber },
+//     ],
+//   });
+//   if (!auth) {
+
+//     console.log(token);
+//   } else {
+//     console.log(auth);
+//     throw new Error("User Exists");
+//   }
+//   return auth;
+// };
 
 const authModel = mongoose.model("Auth", AuthScehema);
 
