@@ -2,7 +2,7 @@ var express = require("express");
 const routes = express.Router();
 const { authRouter } = require("./authRoutes");
 
-routes.use("/auth", authRouter);
+routes.use("/authenticate", authRouter);
 //Swagger
 /**
  * @swagger
@@ -25,9 +25,6 @@ routes.use("/auth", authRouter);
 routes.get("/health", function (req, res) {
   return res.status(200).json("Healthy");
 });
-// routes.get("/:userid/", function (req, res) {
-//   return res.status(200).json("Healthy");
-// });
 
 /**
  * Module returns

@@ -11,7 +11,7 @@ const authController= require("../controllers/authController");
  */
 /**
  * @swagger
- * /users:
+ * /authenticate:
  *    post:
  *      summary: Authenticate a user
  *      parameters:
