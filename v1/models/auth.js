@@ -36,14 +36,10 @@ const AuthScehema = mongoose.Schema({
     type: String,
     minLength: 4,
   },
-  tokens: [
-    {
-      token: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
+  token: {
+    type: String,
+    required: true,
+  },
   status: {
     type: Boolean,
     required: true,
@@ -64,7 +60,7 @@ AuthScehema.methods.generateAuthToken = async function () {
   // Generate an auth token for the user
   const auth = this;
   const token = jwt.sign({ _id: auth._id }, process.env.JWT_KEY);
-  auth.tokens = auth.tokens.concat({ token });
+  auth.token = token;
   await auth.save();
   return token;
 };
@@ -81,25 +77,6 @@ AuthScehema.statics.usernameAuth = async (username, password) => {
   }
   return auth;
 };
-
-// AuthScehema.statics.createAuth = async (username, password, email, mobilenumber) => {
-//   // Search for a user by email and password.
-//   const auth = await authModel.findOne({
-//     $or: [
-//       { username: username },
-//       { email: email },
-//       { mobilenumber: mobilenumber },
-//     ],
-//   });
-//   if (!auth) {
-
-//     console.log(token);
-//   } else {
-//     console.log(auth);
-//     throw new Error("User Exists");
-//   }
-//   return auth;
-// };
 
 const authModel = mongoose.model("Auth", AuthScehema);
 
