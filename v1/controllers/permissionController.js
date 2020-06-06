@@ -1,7 +1,8 @@
-const permissionModel = require("../models/permissions");
+const permissionModel = require("../models/permission");
 
 async function getPermissions(req, res) {
-  return res.json({ message: "All Permissions will be populated here" });
+  permissions = await permissionModel.find();
+  return res.json({ data: permissions });
 }
 
 async function createPermission(req, res){
