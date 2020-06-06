@@ -8,8 +8,10 @@ const jwt = require("jsonwebtoken");
 const AuthScehema = mongoose.Schema({
   username: {
     unique: true,
+    minlength: 6,
     type: String,
     required: true,
+    lowercase: true,
     trim: true,
   },
   mobilenumber: {
