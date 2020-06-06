@@ -2,7 +2,10 @@ const userModel = require('../models/user')
 
 async function getAllUsers(req,res){
   try {
-    users = await userModel.find().lean();
+    users = await userModel
+      .find()
+      .populate({ path: "role", select: "name" })
+      .lean();
     return res.json({ data: users });
   } catch (error) {
     return res.status(400).json({message: error});
