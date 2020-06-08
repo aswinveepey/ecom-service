@@ -5,6 +5,7 @@ const { dashRouter } = require("./dashRoutes");
 const { permissionRouter } = require("./permissionRoutes");
 const { roleRouter } = require("./roleRoutes");
 const { userRouter } = require("./userRoutes");
+const { territoryRouter } = require("./territoryRoutes");
 const {auth} = require('../middlewares/auth')
 
 routes.use("/auth", authRouter);
@@ -12,6 +13,7 @@ routes.use("/dash",auth, dashRouter);
 routes.use("/permission",auth, permissionRouter);
 routes.use("/role",auth, roleRouter);
 routes.use("/user",auth, userRouter);
+routes.use("/territory", auth, territoryRouter);
 //Swagger
 /**
  * @swagger

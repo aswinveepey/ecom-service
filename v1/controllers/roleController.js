@@ -2,8 +2,7 @@ const roleModel = require('../models/roles')
 // const permissionModel = require('../models/permission')
 
 async function getRoles(req, res){
-  const roles = await roleModel.find().populate("permissions");
-  console.log(roles)
+  const roles = await roleModel.find().populate("permissions").lean();
   res.send(roles)
 }
 
@@ -18,7 +17,7 @@ async function createRoles(req, res){
       role.save();
     });
     res.json({message: 'Role Added Succesfully'})
-  } catch (error) {
+  } catch (error) {Cookies.get("token");
     res.status(400).json({error: error})
   }
 }

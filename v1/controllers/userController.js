@@ -12,6 +12,19 @@ async function getAllUsers(req,res){
   }
 }
 
+async function getOneUser(req,res){
+  try {
+    const { userId } = req.params;
+    user = await userModel
+      .findById(userId)
+      .populate({ path: "role", select: "name" })
+      .lean();
+    return res.json({ data: user });
+  } catch (error) {
+    return res.status(400).json({message: error});
+  }
+}
+
 async function createUser(req,res){
   try {
     var {
@@ -49,4 +62,4 @@ async function createUser(req,res){
   }
 }
 
-module.exports = {getAllUsers, createUser};
+module.exports = {getAllUsers, createUser, getOneUser};
