@@ -47,6 +47,11 @@ const AuthScehema = mongoose.Schema({
     required: true,
     default: true,
   },
+  createdAt: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
 });
 
 AuthScehema.pre("save", async function (next) {

@@ -14,6 +14,11 @@ const roleSchema = mongoose.Schema({
       ref: "Permission",
     },
   ],
+  createdAt: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
 });
 
 const roleModel = mongoose.model("Role", roleSchema);

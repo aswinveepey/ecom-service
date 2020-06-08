@@ -5,13 +5,19 @@ const territorySchema = mongoose.Schema({
     type: String,
     unique: true,
     required: true,
+    lowercase: true,
   },
-  pincodes:[
+  pincodes: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Pincode'
-    }
-  ]
+      ref: "Pincode",
+    },
+  ],
+  createdAt: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
 });
 
 const territoryModel = mongoose.model("Territory", territorySchema);

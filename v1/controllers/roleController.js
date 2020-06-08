@@ -12,7 +12,6 @@ async function createRoles(req, res){
     role = new roleModel({name: name});
     role.save();
     permissions.forEach(element => {
-      // permissionsObj = PermissionModel.findOne({ id: element.id });
       role.permissions.push(element.id);
       role.save();
     });

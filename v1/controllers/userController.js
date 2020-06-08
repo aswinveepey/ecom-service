@@ -5,6 +5,7 @@ async function getAllUsers(req,res){
     users = await userModel
       .find()
       .populate({ path: "role", select: "name" })
+      .populate({ path: "auth", select: "username email mobilenumber status" })
       .lean();
     return res.json({ data: users });
   } catch (error) {
@@ -18,6 +19,7 @@ async function getOneUser(req,res){
     user = await userModel
       .findById(userId)
       .populate({ path: "role", select: "name" })
+      .populate({ path: "auth", select: "username email mobilenumber status" })
       .lean();
     return res.json({ data: user });
   } catch (error) {
