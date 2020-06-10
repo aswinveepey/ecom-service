@@ -46,23 +46,29 @@ async function createUser(req, res) {
       divisions,
       territories,
     } = req.body;
-    user = new userModel({
+    newauth =  await authModel.create({
+      username: auth.username,
+      mobilenumber: auth.mobilenumber,
+      email: auth.email,
+      password: auth.password,
+      status: auth.status
+    })
+    user = await userModel.create({
       firstname: firstname,
       lastname: lastname,
       role: role._id,
       contactnumber: contactnumber,
       designation: designation,
       contactaddress: contactaddress,
+      auth: newauth._id
     });
-    user.save();
     divisions.forEach((element) => {
       user.divisions.push(element);
-      user.save();
     });
     territories.forEach((element) => {
       user.divisions.push(element);
-      user.save();
     });
+    user.save()
     return res.json({ data: user.auth.username });
   } catch (error) {
     return res.status(400).json({ message: error });
