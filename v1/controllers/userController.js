@@ -53,6 +53,7 @@ async function createUser(req, res) {
       password: auth.password,
       status: auth.status
     })
+    token = await newauth.generateAuthToken();
     user = await userModel.create({
       firstname: firstname,
       lastname: lastname,
@@ -66,11 +67,12 @@ async function createUser(req, res) {
       user.divisions.push(element);
     });
     territories.forEach((element) => {
-      user.divisions.push(element);
+      user.territories.push(element);
     });
     user.save()
     return res.json({ data: user.auth.username });
   } catch (error) {
+    console.log(error);
     return res.status(400).json({ message: error });
   }
 }

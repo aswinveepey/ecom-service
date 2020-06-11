@@ -40,7 +40,6 @@ const AuthScehema = mongoose.Schema({
   },
   token: {
     type: String,
-    required: true,
   },
   status: {
     type: Boolean,
