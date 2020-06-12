@@ -131,4 +131,31 @@ async function updateUser(req,res){
   }
 }
 
-module.exports = { getAllUsers, createUser, getOneUser, updateUser };
+async function searchUser(req, res){
+  const {searchString} = req.body;
+  try {
+    userModel
+      // .aggregate([{ $match: { $text: { $search: searchString } } }])
+      .find({ $text: { $search: searchString } })
+      .select("firstname lastname _id")
+      .limit(3)
+      .exec(function (err, docs) {
+        if (err) {
+          return res.status(400).json({ message: err });
+        }
+        return res.send(docs);
+      });
+    // return res.send(users);
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({ message: error });
+  }
+}
+
+module.exports = {
+  getAllUsers,
+  createUser,
+  getOneUser,
+  updateUser,
+  searchUser,
+};
