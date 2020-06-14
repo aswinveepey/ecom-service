@@ -3,9 +3,10 @@ const userRouter = express.Router();
 const userController = require("../controllers/userController");
 
 userRouter.get("/", userController.getAllUsers);
-userRouter.get("/:userId", userController.getOneUser);
+userRouter.get("/id/:userId", userController.getOneUser);
 userRouter.post("/", userController.createUser);
-userRouter.post("/:userId", userController.updateUser);
+userRouter.post("/id/:userId", userController.updateUser);
+userRouter.post("/search", userController.searchUser);
 // userRouter.get("/search", userController.searchUser);
 
 module.exports = { userRouter };
