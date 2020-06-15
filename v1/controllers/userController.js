@@ -152,10 +152,26 @@ async function searchUser(req, res){
   }
 }
 
+async function getUserDash(req, res){
+  return res.json({message: 'success'})
+}
+async function getUserNav(req, res) {
+  const data = [
+    { nav: "/home", label: "Home", name:'home' },
+    { nav: "/user", label: "Users", name:'users' },
+    { nav: "/home", label: "Customers", name:'customers' },
+    { nav: "/order", label: "Orders", name:'orders' },
+    { nav: "/order", label: "Invoices", name:'invoices' },
+  ];
+  return res.send(data);
+}
+
 module.exports = {
   getAllUsers,
   createUser,
   getOneUser,
   updateUser,
   searchUser,
+  getUserDash,
+  getUserNav,
 };
