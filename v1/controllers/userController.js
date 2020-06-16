@@ -10,7 +10,8 @@ async function getAllUsers(req,res){
       .populate({ path: "territories", select: "name" })
       .populate({ path: "divisions", select: "name" })
       .populate({ path: "auth", select: "username email mobilenumber status" })
-      .lean();
+      .lean()
+      .limit(250);
     return res.json({ data: users });
   } catch (error) {
     return res.status(400).json({message: error});

@@ -11,6 +11,11 @@ const customerSchema = mongoose.Schema({
     required: true,
     trim: true,
   },
+  type: {
+    type: String,
+    required: true,
+    enum: ["B2C", "B2B"],
+  },
   gender: {
     enum: ["Male", "Female", "Other"],
   },
@@ -20,8 +25,13 @@ const customerSchema = mongoose.Schema({
   contactnumber: {
     type: String,
   },
-  deliveryaddress: [
+  address: [
     {
+      type: {
+        type: String,
+        required: true,
+        enum: ["Delivery", "Billing"],
+      },
       address1: {
         type: String,
         required: true,
@@ -73,14 +83,6 @@ const customerSchema = mongoose.Schema({
   account: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  updatedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
   },
   createdat: {
     type: Date,

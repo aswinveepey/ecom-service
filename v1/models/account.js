@@ -3,7 +3,6 @@ const validator = require("validator");
 
 const accountSchema = moongoose.Schema({
   name: {
-    unique: true,
     type: String,
     required: true,
     trim: true,
@@ -12,8 +11,6 @@ const accountSchema = moongoose.Schema({
   type: {
     unique: true,
     type: String,
-    required: true,
-    trim: true,
     lowercase: true,
   },
   gstin: {
@@ -45,23 +42,68 @@ const accountSchema = moongoose.Schema({
       unique: true,
     },
   },
-  address: {
-    type: String,
-  },
-  updatelog: [
+  address: [
     {
-      updatedat: {
-        type: Date,
+      type: {
+        type: String,
         required: true,
-        default: Date.now,
+        enum: ["Delivery", "Billing"],
       },
-      updatedby: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+      address1: {
+        type: String,
+        required: true,
+      },
+      address2: {
+        type: String,
+      },
+      landmark: {
+        type: String,
+        required: true,
+      },
+      area: {
+        type: String,
+        required: true,
+      },
+      district: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+        default: "IN",
+      },
+      pincode: {
+        type: String,
+        required: true,
+      },
+      lat: {
+        type: String,
+        required: true,
+      },
+      long: {
+        type: String,
         required: true,
       },
     },
   ],
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  updatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  updatedat: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
   createdat: {
     type: Date,
     required: true,
