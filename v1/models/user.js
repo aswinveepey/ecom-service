@@ -43,20 +43,12 @@ const userSchema = mongoose.Schema({
     ref: "Role",
     required: true
   },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  updatedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  createdAt: {
+  createdat: {
     type: Date,
     required: true,
     default: Date.now,
   },
-  updatedAt: {
+  updatedat: {
     type: Date,
     required: true,
     default: Date.now,
