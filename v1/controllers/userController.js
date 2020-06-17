@@ -52,7 +52,7 @@ async function createUser(req, res) {
       mobilenumber: auth.mobilenumber,
       email: auth.email,
       password: auth.password,
-      status: auth.status
+      status: true
     })
     token = await newauth.generateAuthToken();
     user = await userModel.create({

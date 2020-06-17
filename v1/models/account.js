@@ -1,7 +1,7 @@
-const moongoose = require("mongoose");
+const mongoose = require("mongoose");
 const validator = require("validator");
 
-const accountSchema = moongoose.Schema({
+const accountSchema = mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -111,6 +111,6 @@ const accountSchema = moongoose.Schema({
   },
 });
 
-const accountModel = moongoose.model("Account", accountSchema);
+const accountModel = mongoose.model("Account", accountSchema);
 
 module.exports = accountModel;

@@ -17,6 +17,7 @@ const customerSchema = mongoose.Schema({
     enum: ["Business", "Regular"],
   },
   gender: {
+    type: String,
     enum: ["Male", "Female", "Other"],
   },
   birthday: {

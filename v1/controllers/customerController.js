@@ -18,7 +18,7 @@ async function getAllCustomers(req, res) {
 
 async function getOneCustomers(req, res) {
   try {
-    var {customerId} = req.body;
+    var {customerId} = req.params;
     !customerId && res.status(400).json({message: "Customer ID is Required to carry out the operation"})
     customer = await customerModel
       .findById(customerId)
@@ -45,32 +45,61 @@ async function createCustomer(req, res) {
       auth,
       account
     } = req.body;
-    newauth = await authModel.create({
+    var newAuth;
+    var token;
+    var customer;
+    //create
+    await authModel.create({
       username: auth.username,
       mobilenumber: auth.mobilenumber,
       email: auth.email,
       password: auth.password,
-      status: auth.status,
+      status: true,
+    }).then(data=>{
+      newAuth = data;
+    }).catch(err=>{
+      console.log(err);
+      return res.status(400).send({'error': err})
     });
-    token = await newauth.generateAuthToken();
-    user = userModel.create({
-      firstname: firstname,
-      lastname: lastname,
-      type: type,
-      gender: gender,
-      birthday: birthday,
-      contactnumber: contactnumber,
-      account: account._id,
-      auth: newauth._id
+    //generate token
+    await newAuth
+      .generateAuthToken()
+      .then((data) => {
+        token = data;
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(400).send({ error: err });
+      });
+    //create customer
+    await customerModel
+      .create({
+        firstname: firstname,
+        lastname: lastname,
+        type: type,
+        gender: gender,
+        birthday: birthday,
+        contactnumber: contactnumber,
+        account: account?._id,
+        auth: newAuth._id,
+      })
+      .then((data) => {
+        customer = data;
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(400).send({ error: err })
+      });
+
+    await address.forEach((el) => {
+      customer.address.push(el);
     });
-    address.forEach((el) => {
-      user.address.push(el);
-    });
-    user.save();
-    return res.json({ data: user });
-  } catch (error) {
-    return res.status(400).send({ message: error });
+    await customer.save();
+    return res.json({ data: customer });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send({ message: err });
   }
 }
 
-moduls.exports = { getAllCustomers, getOneCustomers, createCustomer };
+module.exports = { getAllCustomers, getOneCustomers, createCustomer };

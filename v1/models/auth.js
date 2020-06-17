@@ -18,10 +18,12 @@ const AuthScehema = mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    sparse: true
   },
   email: {
     type: String,
     unique: true,
+    sparse:true,
     lowercase: true,
     validate: (value) => {
       if (!validator.isEmail(value)) {

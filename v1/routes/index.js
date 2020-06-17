@@ -8,6 +8,8 @@ const { userRouter } = require("./userRoutes");
 const { territoryRouter } = require("./territoryRoutes");
 const { divisionRouter } = require("./divisionRoutes");
 const { searchRouter } = require("./searchRoutes");
+const { accountRouter } = require("./accountRoutes");
+const { customerRouter } = require("./customerRoutes");
 const {auth} = require('../middlewares/auth')
 
 routes.use("/auth", authRouter);
@@ -18,6 +20,8 @@ routes.use("/user",auth, userRouter);
 routes.use("/territory", auth, territoryRouter);
 routes.use("/division", auth, divisionRouter);
 routes.use("/search", auth, searchRouter);
+routes.use("/account", auth, accountRouter);
+routes.use("/customer", customerRouter);
 //Swagger
 /**
  * @swagger

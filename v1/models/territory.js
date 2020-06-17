@@ -12,7 +12,7 @@ const territorySchema = mongoose.Schema({
       type: String,
     },
   ],
-  createdAt: {
+  createdat: {
     type: Date,
     required: true,
     default: Date.now,

@@ -43,4 +43,4 @@ async function createAccount(req, res){
   }
 }
 
-moduls.exports = { getAllAccounts, getOneAccount, createAccount };
+module.exports = { getAllAccounts, getOneAccount, createAccount };
