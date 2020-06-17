@@ -9,8 +9,7 @@ const territorySchema = mongoose.Schema({
   },
   pincodes: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Pincode",
+      type: String,
     },
   ],
   createdAt: {

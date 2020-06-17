@@ -14,7 +14,7 @@ const customerSchema = mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ["B2C", "B2B"],
+    enum: ["Business", "Regular"],
   },
   gender: {
     enum: ["Male", "Female", "Other"],
