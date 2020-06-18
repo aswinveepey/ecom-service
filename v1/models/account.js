@@ -6,7 +6,6 @@ const accountSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    lowercase: true,
   },
   type: {
     unique: true,
@@ -39,7 +38,9 @@ const accountSchema = mongoose.Schema({
     mobile: {
       type: String,
       required: true,
-      unique: true,
+    },
+    designation: {
+      type: String,
     },
   },
   address: [

@@ -27,16 +27,22 @@ async function getOneAccount(req, res) {
 async function createAccount(req, res){
   try {
     var {name, type, gstin, primarycontact, address} = req.body;
-    account = accountModel.create({
-      name: name,
-      type: type,
-      gstin: gstin,
-      primarycontact: primarycontact
-    })
-    address.forEach(el => {
+    var account;
+    await accountModel
+      .create({
+        name: name,
+        type: type,
+        gstin: gstin,
+        primarycontact: primarycontact,
+      })
+      .then((data) => {
+        account = data;
+      })
+      .catch((err) => res.status(400).send({ error: err }));
+    await address.forEach(el => {
       account.address.push(el)
     });
-    account.save();
+    await account.save();
     return res.json({data: account})
   } catch (error) {
     return res.status(400).send({message: error})

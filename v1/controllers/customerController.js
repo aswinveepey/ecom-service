@@ -58,7 +58,7 @@ async function createCustomer(req, res) {
     }).then(data=>{
       newAuth = data;
     }).catch(err=>{
-      console.log(err);
+      // console.log(err);
       return res.status(400).send({'error': err})
     });
     //generate token
@@ -68,7 +68,7 @@ async function createCustomer(req, res) {
         token = data;
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         return res.status(400).send({ error: err });
       });
     //create customer
@@ -87,7 +87,7 @@ async function createCustomer(req, res) {
         customer = data;
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         return res.status(400).send({ error: err })
       });
 
