@@ -49,4 +49,30 @@ async function createAccount(req, res){
   }
 }
 
-module.exports = { getAllAccounts, getOneAccount, createAccount };
+async function searchAccount(req, res) {
+  const { searchString } = req.body;
+  try {
+    accountModel
+      // .aggregate([{ $match: { $text: { $search: searchString } } }])
+      .find({ $text: { $search: searchString } })
+      .select("name _id")
+      .limit(3)
+      .exec(function (err, docs) {
+        if (err) {
+          return res.status(400).json({ message: err });
+        }
+        return res.send(docs);
+      });
+    // return res.send(users);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: error });
+  }
+}
+
+module.exports = {
+  getAllAccounts,
+  getOneAccount,
+  createAccount,
+  searchAccount,
+};

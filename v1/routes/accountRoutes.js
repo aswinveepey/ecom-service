@@ -5,6 +5,7 @@ const accountController = require("../controllers/accountController");
 accountRouter.get("/", accountController.getAllAccounts);
 accountRouter.get("/id/:accountId", accountController.getOneAccount);
 accountRouter.post("/", accountController.createAccount);
+accountRouter.post("/search", accountController.searchAccount);
 // accountRouter.post("/id/:userId", accountController.updateOneAccount);
 
 module.exports = { accountRouter };

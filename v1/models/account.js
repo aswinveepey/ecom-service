@@ -10,7 +10,7 @@ const accountSchema = mongoose.Schema({
   type: {
     unique: true,
     type: String,
-    lowercase: true,
+    enum: ["Corporate", "Enterprise", "Other"],
   },
   gstin: {
     unique: true,
@@ -111,6 +111,16 @@ const accountSchema = mongoose.Schema({
     default: Date.now,
   },
 });
+
+accountSchema.index(
+  {
+    name: "text",
+    gstin: "text",
+  },
+  {
+    name: "account_search_index",
+  }
+);
 
 const accountModel = mongoose.model("Account", accountSchema);
 
