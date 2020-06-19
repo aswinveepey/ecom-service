@@ -1,5 +1,6 @@
 const customerModel = require("../models/customer");
 const authModel = require("../models/auth");
+const mongoose = require("mongoose");
 
 async function getAllCustomers(req, res) {
   try {
@@ -16,7 +17,7 @@ async function getAllCustomers(req, res) {
   }
 }
 
-async function getOneCustomers(req, res) {
+async function getOneCustomer(req, res) {
   try {
     var {customerId} = req.params;
     !customerId && res.status(400).json({message: "Customer ID is Required to carry out the operation"})
@@ -102,4 +103,64 @@ async function createCustomer(req, res) {
   }
 }
 
-module.exports = { getAllCustomers, getOneCustomers, createCustomer };
+async function updateCustomer(req, res) {
+  try {
+    var {
+      _id,
+      firstname,
+      lastname,
+      auth,
+      account,
+      gender,
+      birthday,
+      contactnumber,
+      address,
+    } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      return res.status(400).json({ message: "Invalid Customer ID" });
+    }
+    if (account && !mongoose.Types.ObjectId.isValid(account._id)) {
+      return res.status(400).json({ message: "Invalid Account ID" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(auth._id)) {
+      return res.status(400).json({ message: "Invalid Auth ID" });
+    }
+    customer = await customerModel.findByIdAndUpdate(
+      mongoose.Types.ObjectId(_id),
+      {
+        $set: {
+          firstname: firstname,
+          lastname: lastname,
+          contactnumber: contactnumber,
+          account: account?._id,
+          gender: gender,
+          birthday: birthday,
+        },
+      },
+      { new: true }
+    );
+    await address.forEach(element => {
+      customer.address.push(element)
+    });
+    await customer.save();
+    await authModel.findByIdAndUpdate(mongoose.Types.ObjectId(auth._id), {
+      $set: {
+        username: auth.username,
+        mobilenumber: auth.mobilenumber,
+        email: auth.email,
+        status: auth.status,
+      },
+    });
+    return res.json(customer);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: error });
+  }
+}
+
+module.exports = {
+  getAllCustomers,
+  getOneCustomer,
+  createCustomer,
+  updateCustomer,
+};

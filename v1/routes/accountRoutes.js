@@ -6,6 +6,6 @@ accountRouter.get("/", accountController.getAllAccounts);
 accountRouter.get("/id/:accountId", accountController.getOneAccount);
 accountRouter.post("/", accountController.createAccount);
 accountRouter.post("/search", accountController.searchAccount);
-// accountRouter.post("/id/:userId", accountController.updateOneAccount);
+accountRouter.post("/id/:accountId", accountController.updateAccount);
 
 module.exports = { accountRouter };

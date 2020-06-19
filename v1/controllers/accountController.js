@@ -1,4 +1,5 @@
 const accountModel = require('../models/account')
+const mongoose = require("mongoose");
 
 async function getAllAccounts(req, res){
   try {
@@ -70,9 +71,38 @@ async function searchAccount(req, res) {
   }
 }
 
+async function updateAccount(req, res) {
+  try {
+    var { _id, name, type, primarycontact, address } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      return res.status(400).json({ message: "Invalid Account ID" });
+    }
+    account = await accountModel.findByIdAndUpdate(
+      mongoose.Types.ObjectId(_id),
+      {
+        $set: {
+          name: name,
+          type: type,
+          primarycontact: primarycontact
+        },
+      },
+      { new: true }
+    );
+    await address.forEach((element) => {
+      account.address.push(element);
+    });
+    await account.save();
+    return res.json(account);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: error });
+  }
+}
+
 module.exports = {
   getAllAccounts,
   getOneAccount,
   createAccount,
   searchAccount,
+  updateAccount,
 };
