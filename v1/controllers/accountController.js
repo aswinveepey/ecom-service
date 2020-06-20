@@ -35,12 +35,13 @@ async function createAccount(req, res){
         type: type,
         gstin: gstin,
         primarycontact: primarycontact,
+        address: address
       })
-    console.log(account);
-    await address?.forEach(el => {
-      account.address.push(el)
-    });
-    await account.save();
+    // console.log(account);
+    // await address?.forEach(el => {
+    //   account.address.push(el)
+    // });
+    // await account.save();
     return res.json({data: account})
   } catch (error) {
     console.log(error)
@@ -82,15 +83,16 @@ async function updateAccount(req, res) {
           name: name,
           type: type,
           gstin: gstin,
-          primarycontact: primarycontact
+          primarycontact: primarycontact,
+          address: address
         },
       },
       { new: true }
     );
-    await address.forEach((element) => {
-      account.address.push(element);
-    });
-    await account.save();
+    // await address.forEach((element) => {
+    //   account.address.push(element);
+    // });
+    // await account.save();
     return res.json(account);
   } catch (error) {
     console.log(error);

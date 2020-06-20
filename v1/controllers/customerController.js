@@ -68,6 +68,7 @@ async function createCustomer(req, res) {
         birthday: birthday,
         contactnumber: contactnumber,
         account: account?._id,
+        address: address,
         auth: newAuth._id,
       })
       .then((data) => {
@@ -78,10 +79,10 @@ async function createCustomer(req, res) {
         return res.status(400).send({ error: err })
       });
 
-    await address?.forEach((el) => {
-      customer.address.push(el);
-    });
-    await customer.save();
+    // await address?.forEach((el) => {
+    //   customer.address.push(el);
+    // });
+    // await customer.save();
     return res.json({ data: customer });
   } catch (err) {
     console.log(err);
@@ -123,14 +124,15 @@ async function updateCustomer(req, res) {
           account: account?._id,
           gender: gender,
           birthday: birthday,
+          address: address
         },
       },
       { new: true }
     );
-    await address.forEach(element => {
-      customer.address.push(element)
-    });
-    await customer.save();
+    // await address.forEach(element => {
+    //   customer.address.push(element)
+    // });
+    // await customer.save();
     await authModel.findByIdAndUpdate(mongoose.Types.ObjectId(auth._id), {
       $set: {
         username: auth.username,
