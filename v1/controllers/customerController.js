@@ -46,32 +46,18 @@ async function createCustomer(req, res) {
       auth,
       account
     } = req.body;
-    var newAuth;
-    var token;
+
     var customer;
     //create
-    await authModel.create({
+    newAuth = await authModel.create({
       username: auth.username,
       mobilenumber: auth.mobilenumber,
       email: auth.email,
       password: auth.password,
       status: true,
-    }).then(data=>{
-      newAuth = data;
-    }).catch(err=>{
-      // console.log(err);
-      return res.status(400).send({'error': err})
-    });
-    //generate token
-    await newAuth
-      .generateAuthToken()
-      .then((data) => {
-        token = data;
-      })
-      .catch((err) => {
-        // console.log(err);
-        return res.status(400).send({ error: err });
-      });
+    })
+    console.log(newAuth);
+    await newAuth.generateAuthToken();
     //create customer
     await customerModel
       .create({
@@ -92,7 +78,7 @@ async function createCustomer(req, res) {
         return res.status(400).send({ error: err })
       });
 
-    await address.forEach((el) => {
+    await address?.forEach((el) => {
       customer.address.push(el);
     });
     await customer.save();
@@ -107,6 +93,7 @@ async function updateCustomer(req, res) {
   try {
     var {
       _id,
+      type,
       firstname,
       lastname,
       auth,
@@ -131,6 +118,7 @@ async function updateCustomer(req, res) {
         $set: {
           firstname: firstname,
           lastname: lastname,
+          type: type,
           contactnumber: contactnumber,
           account: account?._id,
           gender: gender,

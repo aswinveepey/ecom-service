@@ -29,23 +29,21 @@ async function createAccount(req, res){
   try {
     var {name, type, gstin, primarycontact, address} = req.body;
     var account;
-    await accountModel
+    account = await accountModel
       .create({
         name: name,
         type: type,
         gstin: gstin,
         primarycontact: primarycontact,
       })
-      .then((data) => {
-        account = data;
-      })
-      .catch((err) => res.status(400).send({ error: err }));
-    await address.forEach(el => {
+    console.log(account);
+    await address?.forEach(el => {
       account.address.push(el)
     });
     await account.save();
     return res.json({data: account})
   } catch (error) {
+    console.log(error)
     return res.status(400).send({message: error})
   }
 }
@@ -73,7 +71,7 @@ async function searchAccount(req, res) {
 
 async function updateAccount(req, res) {
   try {
-    var { _id, name, type, primarycontact, address } = req.body;
+    var { _id, name, type, primarycontact, address, gstin } = req.body;
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid Account ID" });
     }
@@ -83,6 +81,7 @@ async function updateAccount(req, res) {
         $set: {
           name: name,
           type: type,
+          gstin: gstin,
           primarycontact: primarycontact
         },
       },

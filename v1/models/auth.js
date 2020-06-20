@@ -10,7 +10,6 @@ const AuthScehema = mongoose.Schema({
     unique: true,
     minlength: 6,
     type: String,
-    required: true,
     lowercase: true,
     trim: true,
   },
@@ -33,7 +32,6 @@ const AuthScehema = mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
     minLength: 7,
   },
   otp: {
@@ -58,7 +56,7 @@ const AuthScehema = mongoose.Schema({
 AuthScehema.pre("save", async function (next) {
   // Hash the password before saving the auth model
   const auth = this;
-  if (auth.isModified("password")) {
+  if (auth.password && auth.isModified("password")) {
     auth.password = await bcrypt.hash(auth.password, 8);
   }
   next();

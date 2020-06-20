@@ -8,7 +8,6 @@ const accountSchema = mongoose.Schema({
     trim: true,
   },
   type: {
-    unique: true,
     type: String,
     enum: ["Corporate", "Enterprise", "Other"],
   },
