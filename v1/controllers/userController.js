@@ -144,9 +144,8 @@ async function searchUser(req, res){
         if (err) {
           return res.status(400).json({ message: err });
         }
-        return res.send(docs);
+        return res.json({ data: docs });
       });
-    // return res.send(users);
   } catch (error) {
     console.log(error)
     return res.status(400).json({ message: error });
@@ -164,7 +163,7 @@ async function getUserNav(req, res) {
     { nav: "/order", label: "Orders", name:'orders' },
     { nav: "/invoice", label: "Invoices", name:'invoices' },
   ];
-  return res.send(data);
+  return res.json({ data : data});
 }
 
 module.exports = {

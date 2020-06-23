@@ -3,7 +3,7 @@ const territoryModel = require("../models/territory");
 
 async function getTerritories(req, res) {
   const territories = await territoryModel.find().populate("pincode").lean();
-  res.send(territories);
+  res.json({ data: territories });
 }
 
 async function createTerritory(req, res) {

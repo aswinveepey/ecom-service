@@ -42,7 +42,7 @@ app.use(bodyParser.json())
 /**
  * Add prefix version to the route
  */
-app.use("/api/v1", routerV1);
+app.use("/api/v1/hhys", routerV1);
 
 app.listen(process.env.SERVICE_PORT, () =>
   console.log(`Service ready & listening at port: ` + process.env.SERVICE_PORT)

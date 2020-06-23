@@ -3,7 +3,7 @@ const roleModel = require('../models/roles')
 
 async function getRoles(req, res){
   const roles = await roleModel.find().populate("permissions").lean();
-  res.send(roles)
+  res.json({ data: roles });
 }
 
 async function createRoles(req, res){

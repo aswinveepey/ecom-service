@@ -8,12 +8,46 @@ const categorySchema = moongoose.Schema({
     trim: true,
     lowercase: true,
   },
-  createdAt: {
+  filterattributes: [
+    {
+      name: {
+        type: String,
+        lowercase: true,
+        trim: true,
+      },
+      values:[
+        {type: String, lowercase: true, trim: true}
+      ]
+    },
+  ],
+  assets: {
+    img: {
+      type: String,
+    },
+    thumbnail: {
+      type: String,
+    },
+  },
+  createdat: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
+  updatedat: {
     type: Date,
     required: true,
     default: Date.now,
   },
 });
+
+categorySchema.index(
+  {
+    name: "text",
+  },
+  {
+    name: "category_search_index",
+  }
+);
 
 const categoryModel = moongoose.model('Category', categorySchema)
 

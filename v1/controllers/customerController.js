@@ -76,7 +76,7 @@ async function createCustomer(req, res) {
       })
       .catch((err) => {
         // console.log(err);
-        return res.status(400).send({ error: err })
+        return res.status(400).json({ error: err })
       });
 
     // await address?.forEach((el) => {
@@ -86,7 +86,7 @@ async function createCustomer(req, res) {
     return res.json({ data: customer });
   } catch (err) {
     console.log(err);
-    return res.status(400).send({ message: err });
+    return res.status(400).json({ message: err });
   }
 }
 

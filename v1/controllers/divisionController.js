@@ -2,7 +2,7 @@ const divisionModel = require('../models/division')
 
 async function getDivisions(req, res){
   const divisions = await divisionModel.find().lean();
-  res.send(divisions);
+  res.json({ data: divisions });
 }
 
 async function createDivision(req, res) {

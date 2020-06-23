@@ -45,7 +45,7 @@ async function createAccount(req, res){
     return res.json({data: account})
   } catch (error) {
     console.log(error)
-    return res.status(400).send({message: error})
+    return res.status(400).json({message: error})
   }
 }
 
@@ -61,9 +61,8 @@ async function searchAccount(req, res) {
         if (err) {
           return res.status(400).json({ message: err });
         }
-        return res.send(docs);
+        return res.json({data:docs});
       });
-    // return res.send(users);
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error });

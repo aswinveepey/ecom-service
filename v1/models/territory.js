@@ -6,10 +6,12 @@ const territorySchema = mongoose.Schema({
     unique: true,
     required: true,
     lowercase: true,
+    trim: true
   },
   pincodes: [
     {
       type: String,
+      trim: true
     },
   ],
   createdat: {
