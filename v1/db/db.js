@@ -5,6 +5,8 @@ if (process.env.NODE_ENV==="production"){
     .connect(process.env.MONGODB_URL, {
       useNewUrlParser: true,
       useCreateIndex: true,
+      useUnifiedTopology: true,
+      socketTimeoutMS: 1000,
     })
     .then(() => console.log("MONGODB CONNECTION SUCCESFUL"))
     .catch((err) => console.log(err));
@@ -14,6 +16,8 @@ if (process.env.NODE_ENV==="production"){
       useNewUrlParser: true,
       useCreateIndex: true,
       autoIndex: false,
+      useUnifiedTopology: true,
+      socketTimeoutMS: 300000,
     })
     .then(() => console.log("MONGODB CONNECTION SUCCESFUL"))
     .catch((err) => console.log(err));

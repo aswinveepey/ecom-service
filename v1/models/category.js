@@ -6,7 +6,6 @@ const categorySchema = moongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    lowercase: true,
   },
   filterattributes: [
     {
@@ -20,6 +19,7 @@ const categorySchema = moongoose.Schema({
       ]
     },
   ],
+  parent:[this],
   assets: {
     img: {
       type: String,

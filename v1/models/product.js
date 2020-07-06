@@ -1,11 +1,12 @@
 const mongoose = require('mongoose')
 const shortid = require('shortid');
+const Double = require("@mongoosejs/double");
 
 const productSchema = mongoose.Schema({
-  shortId: {
+  shortid: {
     type: String,
     unique: true,
-    default: shortId.generate,
+    default: shortid.generate,
   },
   name: {
     type: String,
@@ -57,10 +58,17 @@ const productSchema = mongoose.Schema({
       },
     },
   ],
-  eannumber: {
-    type: String,
-    unique: true,
-  },
+  variantattributes: [
+    {
+      name: {
+        type: String,
+        unique: true,
+      },
+      values: [{
+        type: String,
+      }],
+    },
+  ],
   storage: {
     storagetype: {
       type: String,
@@ -71,11 +79,11 @@ const productSchema = mongoose.Schema({
   },
   logistics: {
     deadweight: {
-      type: mongoose.Schema.Types.Decimal128,
+      type: Double,
       required: true,
     },
     volumetricweight: {
-      type: mongoose.Schema.Types.Decimal128,
+      type: Double,
     },
   },
   gst: {
@@ -84,15 +92,15 @@ const productSchema = mongoose.Schema({
       required: true,
     },
     cgst: {
-      type: mongoose.Schema.Types.Decimal128,
+      type: Double,
       required: true,
     },
     sgst: {
-      type: mongoose.Schema.Types.Decimal128,
+      type: Double,
       required: true,
     },
     igst: {
-      type: mongoose.Schema.Types.Decimal128,
+      type: Double,
       required: true,
     },
   },
@@ -107,7 +115,12 @@ const productSchema = mongoose.Schema({
     default: Date.now,
   },
 });
-
+productSchema.virtual('skus',{
+  ref:'Sku',
+  localField:'_id',
+  foreignField:'product',
+  justOne:false
+});
 productSchema.index(
   {
     name: "text",
@@ -127,6 +140,6 @@ productSchema.index(
   }
 );
 
-const productModel = moongoose.model("Product", productSchema);
+const productModel = mongoose.model("Product", productSchema);
 
 module.exports = productModel;

@@ -1,6 +1,8 @@
+const mongoose = require("mongoose");
 const categoryModel = require("../models/category");
 
 async function getAllCategories(req, res) {
+  // console.log(req.user);
   try {
     categories = await categoryModel
       .find()
@@ -31,7 +33,7 @@ async function createCategory(req, res) {
       filterattributes,
       assets,
     } = req.body;
-    user = await userModel.create({
+    category = await categoryModel.create({
       name: name,
       filterattributes: filterattributes,
       assets: assets,
@@ -56,7 +58,7 @@ async function updateCategory(req, res) {
           name: name,
           filterattributes: filterattributes,
           assets: assets,
-          updatedat: Date.now
+          updatedat: Date.now()
         },
       },
       { new: true }
@@ -77,6 +79,7 @@ async function searchCategory(req, res) {
       .limit(3)
       .exec(function (err, docs) {
         if (err) {
+          console.log(err)
           return res.status(400).json({ message: err });
         }
         return res.json({data: docs});

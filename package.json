@@ -1,11 +1,14 @@
 {
-  "name": "hyss-inframart",
+  "name": "litcom-service",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "./node_modules/pm2/bin/pm2-runtime app.js",
+    "poststart": "node ./node_modules/pm2/bin/pm2 logs"
   },
   "dependencies": {
+    "@mongoosejs/double": "^0.2.0",
+    "aws-sdk": "^2.706.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cookie-parser": "~1.4.4",
@@ -18,6 +21,7 @@
     "mongodb": "^3.5.8",
     "mongoose": "^5.9.17",
     "morgan": "^1.9.1",
+    "pm2": "^4.4.0",
     "shortid": "^2.2.15",
     "swagger-jsdoc": "^4.0.0",
     "swagger-ui-express": "^4.1.4",

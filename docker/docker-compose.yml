@@ -2,18 +2,18 @@ version: '3'
 
 services:
 
-  hyss-inframart-service:
+  litcom-service-rest:
     build: ./
     ports:
       - "3002:80"
     volumes:
-      - ".:/hyss-inframart-service"
+      - ".:/litcom-service-rest"
     environment:
       NODE_ENV: development
       ENVIRONMENT: development
       PORT: 3000
-      DB_HOST: host.docker.internal
-      DB_USER: root
-      DB_PASSWORD: labrador
-      DB_NAME: hyss-inframart
+      # DB_HOST: host.docker.internal
+      # DB_USER: root
+      # DB_PASSWORD: labrador
+      # DB_NAME: hyss-inframart
       HOST: '127.0.0.1'

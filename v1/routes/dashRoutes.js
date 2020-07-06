@@ -1,6 +1,7 @@
 const express = require("express");
 const dashRouter = express.Router();
 const dashController = require("../controllers/dashController");
+const { user } = require("../middlewares/user");
 
 /**
  * Get Dashboard entries
@@ -24,7 +25,7 @@ const dashController = require("../controllers/dashController");
  *           }
  */
 
-dashRouter.get("/", dashController.getData);
+dashRouter.get("/", user, dashController.getData);
 
 // export module
 module.exports = { dashRouter };

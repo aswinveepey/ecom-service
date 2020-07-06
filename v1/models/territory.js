@@ -21,6 +21,15 @@ const territorySchema = mongoose.Schema({
   },
 });
 
+territorySchema.index(
+  {
+    name: "text",
+  },
+  {
+    name: "territory_search_index",
+  }
+);
+
 const territoryModel = mongoose.model("Territory", territorySchema);
 
 module.exports = territoryModel;

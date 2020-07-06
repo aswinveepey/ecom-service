@@ -6,16 +6,12 @@ const brandSchema = moongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    lowercase: true,
   },
-  manufaturer:{
-    type: String
+  manufacturer: {
+    type: String,
   },
   assets: {
-    img: {
-      type: String,
-    },
-    thumbnail: {
+    logo: {
       type: String,
     },
   },

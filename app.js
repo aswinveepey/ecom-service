@@ -1,5 +1,5 @@
-var express = require('express');
-var logger = require('morgan');
+var express = require("express");
+var logger = require("morgan");
 const bodyParser = require("body-parser");
 var app = express();
 var cors = require("cors");
@@ -8,13 +8,13 @@ var cors = require("cors");
 require("dotenv").config();
 
 //db config
-require('./v1/db/db')
+require("./v1/db/db");
 
 //import auth middleware
 // const {auth} = require("./v1/middlewares/authMiddleware");
 
 //logger set up
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
 //get versioned routes
-const routerV1 = require('./v1/routes/index');
+const routerV1 = require("./v1/routes/index");
 
 /**
  * Swagger related setup
@@ -38,12 +38,12 @@ app.use(
 );
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 /**
  * Add prefix version to the route
  */
-app.use("/api/v1/hhys", routerV1);
+app.use("/api/v1/:tenantId", routerV1);
 
-app.listen(process.env.SERVICE_PORT, () =>
-  console.log(`Service ready & listening at port: ` + process.env.SERVICE_PORT)
+app.listen(process.env.PORT || 3002, () =>
+  console.log(`Service ready & listening at port: ` + process.env.PORT)
 );

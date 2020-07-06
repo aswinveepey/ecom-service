@@ -1,4 +1,5 @@
 const brandModel = require("../models/brand");
+const mongoose = require("mongoose");
 
 async function getAllBrands(req, res) {
   try {
@@ -21,10 +22,10 @@ async function getOneBrand(req, res) {
 
 async function createBrand(req, res) {
   try {
-    var { name, assets, manufaturer } = req.body;
+    var { name, assets, manufacturer } = req.body;
     brand = await brandModel.create({
       name: name,
-      manufaturer: manufaturer,
+      manufacturer: manufacturer,
       assets: assets,
     });
     return res.json({ data: brand });
@@ -36,7 +37,7 @@ async function createBrand(req, res) {
 
 async function updateBrand(req, res) {
   try {
-    var { _id, name, manufaturer, assets } = req.body;
+    var { _id, name, manufacturer, assets } = req.body;
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid Brand ID" });
     }
@@ -45,9 +46,9 @@ async function updateBrand(req, res) {
       {
         $set: {
           name: name,
-          manufaturer: manufaturer,
+          manufacturer: manufacturer,
           assets: assets,
-          updatedat: Date.now,
+          updatedat: Date.now(),
         },
       },
       { new: true }
@@ -79,9 +80,9 @@ async function searchBrand(req, res) {
 }
 
 module.exports = {
-  getAllCategories,
-  createCategory,
-  getOneCategory,
-  updateCategory,
-  searchCategory,
+  getAllBrands,
+  createBrand,
+  getOneBrand,
+  updateBrand,
+  searchBrand,
 };

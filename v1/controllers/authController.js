@@ -22,7 +22,7 @@ async function createAuth(req, res) {
     auth = new authModel(payload);
     await auth.save();
     token = await auth.generateAuthToken();
-    return res.json({message: 'User created succesfully'});
+    return res.json({ token: token });
   } catch (err) {
     console.log(err);
     return res.status(401).json({ message: err.message });
