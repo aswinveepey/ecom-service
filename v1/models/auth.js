@@ -71,6 +71,17 @@ AuthScehema.methods.generateAuthToken = async function () {
   return token;
 };
 
+AuthScehema.methods.generateOtp = async function () {
+  // Generate an otp for the user
+  const auth = this;
+  const max = 999999;
+  const min = 100001;
+  const otp = Math.floor(Math.random() * (max - min + 1)) + min;
+  auth.otp = otp;
+  await auth.save();
+  return otp;
+};
+
 AuthScehema.statics.usernameAuth = async (username, password) => {
   // Search for a user by email and password.
   const auth = await authModel.findOne({ username });
@@ -82,6 +93,19 @@ AuthScehema.statics.usernameAuth = async (username, password) => {
     throw new Error("Password Error");
   }
   return auth;
+};
+
+AuthScehema.statics.otpAuth = async (mobilenumber, otp) => {
+  // Search for a user by email and password.
+  const auth = await authModel.findOne({ mobilenumber });
+  if (!auth) {
+    throw new Error("Mobile Number Error");
+  }
+  if (otp===auth.otp) {
+    return auth;
+  } else {
+    throw new Error("Password Error");
+  }
 };
 
 const authModel = mongoose.model("Auth", AuthScehema);
