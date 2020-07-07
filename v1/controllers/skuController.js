@@ -40,7 +40,6 @@ async function createSku(req, res) {
     user = req.user;
     price.discount = price.mrp - price.sellingprice;
     if (!mongoose.Types.ObjectId.isValid(product)) {
-      console.log(product)
       return res.status(400).json({ message: "Invalid product ID" });
     }
     sku = await skuModel.create({
@@ -87,7 +86,7 @@ async function updateSku(req, res) {
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid SKU ID" });
     }
-    if (!mongoose.Types.ObjectId.isValid(product)) {
+    if (!mongoose.Types.ObjectId.isValid(product._id)) {
       return res.status(400).json({ message: "Invalid product ID" });
     }
     sku = await skuModel.findByIdAndUpdate(
@@ -95,7 +94,7 @@ async function updateSku(req, res) {
       {
         $set: {
           name: name,
-          product: product,
+          product: product._id,
           inventory: inventory,
           assets: assets,
           attributes: attributes,
@@ -111,9 +110,9 @@ async function updateSku(req, res) {
       { new: true }
     );
     return res.json(sku);
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json({ message: error });
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ message: err });
   }
 }
 
