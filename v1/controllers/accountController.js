@@ -55,7 +55,6 @@ async function searchAccount(req, res) {
     accountModel
       // .aggregate([{ $match: { $text: { $search: searchString } } }])
       .find({ $text: { $search: searchString } })
-      .select("name _id")
       .limit(3)
       .exec(function (err, docs) {
         if (err) {

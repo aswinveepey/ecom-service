@@ -97,6 +97,16 @@ const customerSchema = mongoose.Schema({
   },
 });
 
+customerSchema.index(
+  {
+    firstname: "text",
+    lastname: "text",
+  },
+  {
+    name: "customer_search_index",
+  }
+);
+
 const customerModel = mongoose.model("Customer", customerSchema);
 
 module.exports = customerModel;

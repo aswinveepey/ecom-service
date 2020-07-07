@@ -123,7 +123,10 @@ async function searchProduct(req, res) {
   try {
     productModel
       .find({ $text: { $search: searchString } })
-      .select("name _id")
+      .populate({ path: "category", select: "name" })
+      .populate({ path: "brand", select: "name" })
+      .populate("skus")
+      .lean()
       .limit(3)
       .exec(function (err, docs) {
         if (err) {

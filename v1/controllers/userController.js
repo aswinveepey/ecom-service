@@ -137,8 +137,12 @@ async function searchUser(req, res){
   try {
     userModel
       // .aggregate([{ $match: { $text: { $search: searchString } } }])
-      .find({ $text: { $search: searchString } })
+      .find(
+        { $text: { $search: searchString } },
+        { score: { $meta: "textScore" } }
+      )
       .select("firstname lastname _id")
+      .sort({ score: { $meta: "textScore" } })
       .limit(3)
       .exec(function (err, docs) {
         if (err) {

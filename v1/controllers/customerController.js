@@ -78,11 +78,6 @@ async function createCustomer(req, res) {
         // console.log(err);
         return res.status(400).json({ error: err })
       });
-
-    // await address?.forEach((el) => {
-    //   customer.address.push(el);
-    // });
-    // await customer.save();
     return res.json({ data: customer });
   } catch (err) {
     console.log(err);
@@ -129,10 +124,6 @@ async function updateCustomer(req, res) {
       },
       { new: true }
     );
-    // await address.forEach(element => {
-    //   customer.address.push(element)
-    // });
-    // await customer.save();
     await authModel.findByIdAndUpdate(mongoose.Types.ObjectId(auth._id), {
       $set: {
         username: auth.username,
@@ -148,9 +139,36 @@ async function updateCustomer(req, res) {
   }
 }
 
+async function searchCustomer(req, res) {
+  const { searchString } = req.body;
+  try {
+    customerModel
+      .find(
+        { $text: { $search: searchString } },
+        { score: { $meta: "textScore" } }
+      )
+      .populate("account")
+      .populate({ path: "auth", select: "username email mobilenumber status" })
+      .populate("address")
+      .sort({ score: { $meta: "textScore" } })
+      .lean()
+      .limit(3)
+      .exec(function (err, docs) {
+        if (err) {
+          return res.status(400).json({ message: err });
+        }
+        return res.json({ data: docs });
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: error });
+  }
+}
+
 module.exports = {
   getAllCustomers,
   getOneCustomer,
   createCustomer,
   updateCustomer,
+  searchCustomer,
 };
