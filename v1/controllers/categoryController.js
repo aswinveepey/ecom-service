@@ -38,7 +38,7 @@ async function createCategory(req, res) {
       filterattributes: filterattributes,
       assets: assets,
     });
-    return res.json({ data: category });
+    return res.status(201).json({ data: category });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error });

@@ -4,9 +4,9 @@ const categoryController = require("../controllers/categoryController");
 const { user } = require("../middlewares/user");
 
 categoryRouter.get("/", categoryController.getAllCategories);
-categoryRouter.get("/id/:userId", categoryController.getOneCategory);
+categoryRouter.get("/id/:categoryId", categoryController.getOneCategory);
 categoryRouter.post("/", user, categoryController.createCategory);
-categoryRouter.post("/id/:userId", user, categoryController.updateCategory);
+categoryRouter.post("/id/:categoryId", user, categoryController.updateCategory);
 categoryRouter.post("/search", categoryController.searchCategory);
 
 module.exports = { categoryRouter };

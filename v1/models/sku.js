@@ -22,16 +22,16 @@ const skuSchema = mongoose.Schema({
   inventory: [
     {
       territory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Territory",
-      required: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Territory",
+        required: true,
+      },
+      quantity: {
+        type: mongoose.Schema.Types.Number,
+        required: true,
+        default: 0,
+      },
     },
-    quantity: {
-      type: mongoose.Schema.Types.Number,
-      required: true,
-      default: 0,
-    }
-  }
   ],
   assets: {
     imgs: [
@@ -39,6 +39,9 @@ const skuSchema = mongoose.Schema({
         type: String,
       },
     ],
+    thumbnail: {
+      type: String,
+    },
   },
   attributes: [
     {
@@ -58,8 +61,8 @@ const skuSchema = mongoose.Schema({
         unique: true,
       },
       value: {
-          type: String,
-        },
+        type: String,
+      },
     },
   ],
   price: {

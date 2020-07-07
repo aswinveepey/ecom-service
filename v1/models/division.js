@@ -13,12 +13,34 @@ const divisionSchema = mongoose.Schema({
       ref: "Category",
     },
   ],
-  createdAt: {
+  assets: {
+    img: {
+      type: String,
+    },
+    thumbnail: {
+      type: String,
+    },
+  },
+  createdat: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
+  updatedat: {
     type: Date,
     required: true,
     default: Date.now,
   },
 });
+
+divisionSchema.index(
+  {
+    name: "text",
+  },
+  {
+    name: "division_search_index",
+  }
+);
 
 const divisionModel = mongoose.model('Division', divisionSchema)
 

@@ -14,12 +14,10 @@ const categorySchema = moongoose.Schema({
         lowercase: true,
         trim: true,
       },
-      values:[
-        {type: String, lowercase: true, trim: true}
-      ]
+      values: [{ type: String, lowercase: true, trim: true }],
     },
   ],
-  parent:[this],
+  parent: this,
   assets: {
     img: {
       type: String,
