@@ -38,7 +38,7 @@ async function createSku(req, res) {
       quantityrules,
     } = req.body;
     user = req.user;
-    price.discount = price.mrp - price.sellingprice;
+    price.sellingprice = price.mrp - price.discount;
     if (!mongoose.Types.ObjectId.isValid(product)) {
       return res.status(400).json({ message: "Invalid product ID" });
     }
@@ -49,7 +49,7 @@ async function createSku(req, res) {
       assets: assets,
       attributes: attributes,
       dattributes: dattributes,
-      price:price,
+      price: price,
       quantityrules: quantityrules,
       bulkdiscount: bulkdiscount,
     });
@@ -77,7 +77,6 @@ async function updateSku(req, res) {
     user = req.user;
 
     inventory.forEach(data => {
-      console.log(data.territory._id);
       if (!mongoose.Types.ObjectId.isValid(data.territory._id)) {
         return res.status(400).json({ message: "Invalid Territory ID" });
       }
@@ -121,7 +120,6 @@ async function searchSku(req, res) {
   try {
     skuModel
       .find({ $text: { $search: searchString } })
-      .select("name _id")
       .limit(3)
       .exec(function (err, docs) {
         if (err) {
