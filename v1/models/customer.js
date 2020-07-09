@@ -28,14 +28,10 @@ const customerSchema = mongoose.Schema({
   },
   address: [
     {
-      type: {
-        type: String,
-        required: true,
-        enum: ["Delivery", "Billing"],
-      },
       name:{
         type: String,
-        required: true
+        required: true,
+        unique:true
       },
       address1: {
         type: String,

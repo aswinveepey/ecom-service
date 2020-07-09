@@ -52,9 +52,18 @@ const orderSchema = mongoose.Schema({
     default: shortid.generate,
   },
   customer: {
-    customer: customerSchema,
-    deliveryaddress: addressSchema,
-    billingaddress: addressSchema,
+    customer: {
+      type: customerSchema,
+      required: true
+    },
+    deliveryaddress: {
+      type: addressSchema,
+      required: true,
+    },
+    billingaddress: {
+      type: addressSchema,
+      required: true,
+    },
   },
   orderitems: [
     {
@@ -65,6 +74,11 @@ const orderSchema = mongoose.Schema({
       },
       sku: skuSchema,
       quantity: {
+        territory: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Territory",
+          required: true,
+        },
         booked: {
           type: mongoose.Schema.Types.Number,
           required: true,
@@ -105,7 +119,7 @@ const orderSchema = mongoose.Schema({
           "Returned",
           "Partial Delivery",
         ],
-        default:"Booked"
+        default: "Booked",
       },
       orderdate: {
         type: Date,

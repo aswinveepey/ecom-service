@@ -9,6 +9,14 @@ async function getAllOrders(req, res) {
     orders = await orderModel
       .find()
       .populate({ path: "orderitems.sku.product", select: "name" })
+      .populate({
+        path: "customer.customer.auth",
+        select: "email mobilenumber",
+      })
+      .populate({
+        path: "customer.customer.account",
+        select: "name",
+      })
       .lean()
       .limit(250);
     return res.json({ data: orders });
@@ -44,10 +52,17 @@ async function createOrder(req, res) {
 
     //check if customer id is valid
     if (!mongoose.Types.ObjectId.isValid(customer.customer._id)) res.status(400).json({ message: "Invalid customer ID" })
+
     //get current customer
-    currentCustomer = await customerModel.findById(customer.customer._id).catch(err=>console.log(err))
+    currentCustomer = await customerModel
+      .findById(customer.customer._id)
+      .populate("address")
+      .catch((err) => console.log(err));
+
     //check if customer is valid
     if(!currentCustomer) res.status(400).json({ message: "Specified Customer could not be found" });
+    !currentCustomer.address[0] && res.status(400).json({ message: "Ensure Customer address is valid" }); 
+
     //assign customer to customer.customer
     customer.customer = currentCustomer
     customer.deliveryaddress = currentCustomer.address[0];
@@ -72,30 +87,27 @@ async function createOrder(req, res) {
         //get sku
         sku = await skuModel
           .findById(item.sku._id)
+          .populate("inventory")
           .lean()
           .catch((err) => console.log(err));
         //if invalid sku return error
-        if (!sku)
-          res
-            .status(400)
-            .json({
-              message: "Specified SKU could not be found",
-              index: index,
-            });
+        if (!sku) res.status(400).json({message: "Specified SKU could not be found",index: index,});
         //assign sku from query
         item.sku = sku;
         //check if quantity > 0
-        if (!item.quantity.booked > 0)
-          res
-            .status(400)
-            .json({ message: "Quantity should be greater than 0" });
+        if (!item.quantity.booked > 0) res.status(400).json({ message: "Quantity should be greater than 0" });
+        //check if inventory for particular sku exists
+        !sku.inventory[0]&&res.status(400).json({message:"No inventory for selected sku",index: index,});
+        //check if inventory gte booked qty
+        if (!sku.inventory[0] >= item.quantity.booked) res.status(400).json({message:"OOS for selected territory",index: index,});
+        //check if booked quantity matches inventory
+        item.quantity.territory = sku.inventory[0].territory;
         // handle amount operations
         itemamount = item.sku.price.sellingprice * item.quantity.booked;
         itemdiscount = item.sku.price.discount * item.quantity.booked;
         itemtotalamount = itemdiscount ? (itemamount - itemdiscount ): itemamount;
         itemshipping = item.sku.price.shippingcharges * item.quantity.booked;
-        iteminstallation =
-          item.sku.price.installationcharges * item.quantity.booked;
+        iteminstallation = item.sku.price.installationcharges * item.quantity.booked;
         item.amount = {};
         item.amount.amount = itemamount;
         item.amount.discount = itemdiscount || 0;
@@ -187,9 +199,11 @@ async function searchOrder(req, res) {
     return res.status(400).json({ message: "Non Order Ids are not supported" });
   }
   try {
-    skuModel
-      .findById(searchString)
+    orderModel
+      .find({ _id: searchString })
       .limit(3)
+      .populate({ path: "orderitems.sku.product", select: "name" })
+      .lean()
       .exec(function (err, docs) {
         if (err) {
           return res.status(400).json({ message: err });

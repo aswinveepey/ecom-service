@@ -44,11 +44,6 @@ const accountSchema = mongoose.Schema({
   },
   address: [
     {
-      type: {
-        type: String,
-        required: true,
-        enum: ["Delivery", "Billing"],
-      },
       name:{
         type: String,
         required: true
