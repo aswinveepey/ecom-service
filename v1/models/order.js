@@ -86,6 +86,9 @@ const orderSchema = mongoose.Schema({
         confirmed: {
           type: mongoose.Schema.Types.Number,
         },
+        shipped: {
+          type: mongoose.Schema.Types.Number,
+        },
         delivered: {
           type: mongoose.Schema.Types.Number,
         },

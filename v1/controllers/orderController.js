@@ -103,11 +103,15 @@ async function createOrder(req, res) {
         //check if booked quantity matches inventory
         item.quantity.territory = sku.inventory[0].territory;
         // handle amount operations
-        itemamount = item.sku.price.sellingprice * item.quantity.booked;
-        itemdiscount = item.sku.price.discount * item.quantity.booked;
+        itemamount = item.sku.price.sellingprice * item.quantity.delivered ||
+          item.quantity.shipped || item.quantity.confirmed || item.quantity.booked;
+        itemdiscount = item.sku.price.discount * item.quantity.delivered ||
+          item.quantity.shipped || item.quantity.confirmed || item.quantity.booked;
         itemtotalamount = itemdiscount ? (itemamount - itemdiscount ): itemamount;
-        itemshipping = item.sku.price.shippingcharges * item.quantity.booked;
-        iteminstallation = item.sku.price.installationcharges * item.quantity.booked;
+        itemshipping = item.sku.price.shippingcharges * item.quantity.shipped ||
+          item.quantity.confirmed || item.quantity.booked;
+        iteminstallation = item.sku.price.installationcharges * item.quantity.delivered ||
+          item.quantity.shipped || item.quantity.confirmed || item.quantity.booked;
         item.amount = {};
         item.amount.amount = itemamount;
         item.amount.discount = itemdiscount || 0;
