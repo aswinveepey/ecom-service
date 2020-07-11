@@ -104,7 +104,7 @@ AuthScehema.statics.otpAuth = async (mobilenumber, otp) => {
   if (otp===auth.otp) {
     return auth;
   } else {
-    throw new Error("Password Error");
+    throw new Error("OTP Error");
   }
 };
 

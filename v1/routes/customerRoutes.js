@@ -5,6 +5,7 @@ const { user } = require("../middlewares/user");
 
 customerRouter.get("/", user, customerController.getAllCustomers);
 customerRouter.get("/id/:customerId", customerController.getOneCustomer);
+customerRouter.get("/self", customerController.getSelf);
 customerRouter.post("/", customerController.createCustomer);
 customerRouter.post("/id/:customerId", customerController.updateCustomer);
 customerRouter.post("/search", customerController.searchCustomer);

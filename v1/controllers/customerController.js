@@ -33,6 +33,22 @@ async function getOneCustomer(req, res) {
   }
 }
 
+async function getSelf(req, res) {
+  try {
+    let auth = req.auth;
+    customer = await customerModel
+      .findOne({"auth":auth._id})
+      .populate("account")
+      .populate({ path: "auth", select: "username email mobilenumber status" })
+      .populate("address")
+      .lean();
+    !customer && res.status(400).json({message: "Customer Not Found"})
+    res.json({ data: customer });
+  } catch (error) {
+    return res.status(400).json({ message: error });
+  }
+}
+
 async function createCustomer(req, res) {
   try {
     var {
@@ -171,4 +187,5 @@ module.exports = {
   createCustomer,
   updateCustomer,
   searchCustomer,
+  getSelf,
 };
