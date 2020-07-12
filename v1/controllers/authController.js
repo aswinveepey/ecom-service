@@ -33,7 +33,10 @@ async function generateOtp(req, res){
     const { mobilenumber } = req.body;
     auth = await authModel.findOne({ mobilenumber: mobilenumber });
     if (!auth){
-      return res.status(400).json({message: "Mobile Number does not exist"})
+      auth = await authModel.create({
+        mobilenumber: mobilenumber,
+        username: mobilenumber
+      })
     }
     const otp = await auth.generateOtp();
     //Dangerous - This should be handled via SMS only - Retain for testing purposes

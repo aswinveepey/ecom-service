@@ -49,6 +49,45 @@ async function getSelf(req, res) {
   }
 }
 
+async function registerCustomer(req, res) {
+  try {
+    var {
+      firstname,
+      lastname,
+      gender,
+      birthday,
+      contactnumber,
+      address,
+    } = req.body;
+
+    var customer;
+    auth = req.auth
+    if(!auth) res.status(401).json({message: "Issue verifying auth token"})
+    //create customer
+    await customerModel
+      .create({
+        firstname: firstname,
+        lastname: lastname,
+        type: "Regular",
+        gender: gender,
+        birthday: birthday,
+        contactnumber: contactnumber,
+        address: address,
+        auth: auth,
+      })
+      .then((data) => {
+        customer = data;
+      })
+      .catch((err) => {
+        // console.log(err);
+        return res.status(400).json({ error: err });
+      });
+    return res.json({ data: customer });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ message: err });
+  }
+}
 async function createCustomer(req, res) {
   try {
     var {
@@ -72,7 +111,6 @@ async function createCustomer(req, res) {
       password: auth.password,
       status: true,
     })
-    console.log(newAuth);
     await newAuth.generateAuthToken();
     //create customer
     await customerModel
@@ -188,4 +226,5 @@ module.exports = {
   updateCustomer,
   searchCustomer,
   getSelf,
+  registerCustomer,
 };
