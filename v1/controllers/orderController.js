@@ -152,7 +152,6 @@ async function updateOrder(req, res) {
       
       //get variables from request body
       var { _id, customer, orderitems, amount, payment } = req.body;
-      
       //get user from request
       user = req.user;
       
@@ -169,12 +168,14 @@ async function updateOrder(req, res) {
       //change order items
       orderitems.map((item, index)=>{
         //assign quantity items
-        order.orderitems[index].quantity.confirmed = item.quantity.confirmed
-        order.orderitems[index].quantity.shipped = item.quantity.shipped
+        //if shipping qty not set, allow confirmed qty modification
+        !item.quantity.shipped && (order.orderitems[index].quantity.confirmed = item.quantity.confirmed);
+        //if delivered qty not set allow shipping qty modification
+        !item.quantity.delivered && (order.orderitems[index].quantity.shipped = item.quantity.shipped);
         order.orderitems[index].quantity.delivered = item.quantity.delivered
         order.orderitems[index].quantity.returned = item.quantity.returned
 
-        //manage statuses
+        //assign statuses
         if(item.status === "Cancelled") res.status(400).json({message:"Cancellation Not Supported"})
         order.orderitems[index].status = item.status;
 
