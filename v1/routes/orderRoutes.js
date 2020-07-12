@@ -6,7 +6,7 @@ const { user } = require("../middlewares/user");
 orderRouter.get("/", orderController.getAllOrders);
 orderRouter.get("/id/:orderId", orderController.getOneOrder);
 orderRouter.post("/", user, orderController.createOrder);
-// orderRouter.post("/id/:orderId", user, orderController.updateOrder);
+orderRouter.post("/id/:orderId", user, orderController.updateOrder);
 orderRouter.post("/search", orderController.searchOrder);
 
 module.exports = { orderRouter };

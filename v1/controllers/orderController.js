@@ -73,11 +73,6 @@ async function createOrder(req, res) {
       return res.status(400).json({message:"Atleast One Sku should be present"})
     }
 
-    //initialize order amounts
-    amount.amount = 0
-    amount.installation = 0
-    amount.shipping = 0
-
     //loop through order items and perform operations
     processeditems = await Promise.all(
       orderitems.map(async (item, index) => {
@@ -94,39 +89,48 @@ async function createOrder(req, res) {
         if (!sku) res.status(400).json({message: "Specified SKU could not be found",index: index,});
         //assign sku from query
         item.sku = sku;
-        //check if quantity > 0
-        if (!item.quantity.booked > 0) res.status(400).json({ message: "Quantity should be greater than 0" });
+
+        //Booked Quantity Validations
+        //min qty rule
+        if (!item.quantity.booked >= sku.quantityrules.minorderqty)
+          res.status(400).json({
+            message: `Quantity should be greater than or equal ${sku.quantityrules.minorderqty}`,
+            index: index,
+          });
+        //min qty step rule
+        if (
+          sku.quantityrules.minorderqtystep &&
+          !(item.quantity.booked % sku.quantityrules.minorderqty === 0)
+        )
+          res
+            .status(400)
+            .json({
+              message: "Minimum order qty multiples rules violated",
+              index: index,
+            });
+        // max qty rule
+        if (
+          (sku.quantityrules.maxorderqty != 0) &&
+          (item.quantity.booked > sku.quantityrules.maxorderqty)
+        )
+          res
+            .status(400)
+            .json({
+              message: `Quantity should be lesser than ${sku.quantityrules.maxorderqty}`,
+            });
+        //Inventory Operations
         //check if inventory for particular sku exists
         !sku.inventory[0]&&res.status(400).json({message:"No inventory for selected sku",index: index,});
         //check if inventory gte booked qty
         if (!sku.inventory[0] >= item.quantity.booked) res.status(400).json({message:"OOS for selected territory",index: index,});
-        //check if booked quantity matches inventory
+        
+        //capture territory information
         item.quantity.territory = sku.inventory[0].territory;
-        // handle amount operations
-        itemamount = item.sku.price.sellingprice * item.quantity.delivered ||
-          item.quantity.shipped || item.quantity.confirmed || item.quantity.booked;
-        itemdiscount = item.sku.price.discount * item.quantity.delivered ||
-          item.quantity.shipped || item.quantity.confirmed || item.quantity.booked;
-        itemtotalamount = itemdiscount ? (itemamount - itemdiscount ): itemamount;
-        itemshipping = item.sku.price.shippingcharges * item.quantity.shipped ||
-          item.quantity.confirmed || item.quantity.booked;
-        iteminstallation = item.sku.price.installationcharges * item.quantity.delivered ||
-          item.quantity.shipped || item.quantity.confirmed || item.quantity.booked;
-        item.amount = {};
-        item.amount.amount = itemamount;
-        item.amount.discount = itemdiscount || 0;
-        item.amount.totalamount = itemtotalamount;
+        
         //set default status
         item.status = "Booked";
-        //increment order amounts
-        amount.amount += itemtotalamount;
-        amount.shipping += itemshipping;
-        amount.installation += iteminstallation;
       })
     );
-
-    //calculate order total amount post applying discount if any
-    amount.totalamount = amount.amount - (amount.discount || 0)
     order = await orderModel
       .create({
         customer: customer,
@@ -135,6 +139,7 @@ async function createOrder(req, res) {
         orderitems: orderitems,
       })
       .catch((err) => console.log(err));
+    order = await order.calculateTotals();
     return res.json({ data: order });
   } catch (error) {
     console.log(error);
@@ -142,60 +147,61 @@ async function createOrder(req, res) {
   }
 }
 
-// async function updateOrder(req, res) {
-//   try {
-//     var {
-//       _id,
-//       name,
-//       product,
-//       inventory,
-//       assets,
-//       attributes,
-//       dattributes,
-//       price,
-//       bulkdiscount,
-//       quantityrules,
-//     } = req.body;
-//     user = req.user;
+async function updateOrder(req, res) {
+    try {
+      
+      //get variables from request body
+      var { _id, customer, orderitems, amount, payment } = req.body;
+      
+      //get user from request
+      user = req.user;
+      
+      //validate order id and order
+      if (!mongoose.Types.ObjectId.isValid(_id))
+        res.status(400).json({ message: "Invalid Order ID" });
+      order = await orderModel.findById(_id).populate("customer").populate("orderitems").populate("payments").populate("amount")
+      if(!order) res.status(400).json({message: "Order Not Found"})
+      
+      //change customer address
+      order.customer.deliveryaddress = customer.deliveryaddress
+      order.customer.billingaddress = customer.billingaddress
+      
+      //change order items
+      orderitems.map((item, index)=>{
+        //assign quantity items
+        order.orderitems[index].quantity.confirmed = item.quantity.confirmed
+        order.orderitems[index].quantity.shipped = item.quantity.shipped
+        order.orderitems[index].quantity.delivered = item.quantity.delivered
+        order.orderitems[index].quantity.returned = item.quantity.returned
 
-//     inventory.forEach((data) => {
-//       if (!mongoose.Types.ObjectId.isValid(data.territory._id)) {
-//         return res.status(400).json({ message: "Invalid Territory ID" });
-//       }
-//       data.territory = data.territory._id;
-//     });
-//     if (!mongoose.Types.ObjectId.isValid(_id)) {
-//       return res.status(400).json({ message: "Invalid SKU ID" });
-//     }
-//     if (!mongoose.Types.ObjectId.isValid(product._id)) {
-//       return res.status(400).json({ message: "Invalid product ID" });
-//     }
-//     order = await orderModel.findByIdAndUpdate(
-//       mongoose.Types.ObjectId(_id),
-//       {
-//         $set: {
-//           name: name,
-//           product: product._id,
-//           inventory: inventory,
-//           assets: assets,
-//           attributes: attributes,
-//           dattributes: dattributes,
-//           price: price,
-//           quantityrules: quantityrules,
-//           bulkdiscount: bulkdiscount,
-//         },
-//         $push: {
-//           updatelog: { updatedby: user._id },
-//         },
-//       },
-//       { new: true }
-//     );
-//     return res.json(order);
-//   } catch (err) {
-//     console.log(err);
-//     return res.status(400).json({ message: err });
-//   }
-// }
+        //manage statuses
+        if(item.status === "Cancelled") res.status(400).json({message:"Cancellation Not Supported"})
+        order.orderitems[index].status = item.status;
+
+        //manage discount applied
+        order.orderitems[index].amount.discount = item.amount.discount;
+      });
+
+      //manage order amount fields
+      order.amount.discount = amount.discount
+      order.amount.installation = amount.installation;
+      order.amount.shipping = amount.shipping;
+
+      order.payment = payment
+      //save order & return
+      await order.save()
+      //calculate totals
+      order = await order.calculateTotals();
+
+      //return
+      return res.json({ data: order });
+    } catch (error) {
+
+      //catch error & return
+      console.log(error);
+      return res.status(400).json({ message: error });
+    }
+}
 
 async function searchOrder(req, res) {
   const { searchString } = req.body;
@@ -224,6 +230,6 @@ module.exports = {
   getAllOrders,
   createOrder,
   getOneOrder,
-  // updateOrder,
+  updateOrder,
   searchOrder,
 };

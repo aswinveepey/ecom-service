@@ -54,7 +54,7 @@ const orderSchema = mongoose.Schema({
   customer: {
     customer: {
       type: customerSchema,
-      required: true
+      required: true,
     },
     deliveryaddress: {
       type: addressSchema,
@@ -100,6 +100,7 @@ const orderSchema = mongoose.Schema({
         amount: {
           type: Double,
           required: true,
+          default: 0,
         },
         discount: {
           type: Double,
@@ -109,6 +110,7 @@ const orderSchema = mongoose.Schema({
         totalamount: {
           type: Double,
           required: true,
+          default: 0,
         },
       },
       status: {
@@ -149,6 +151,7 @@ const orderSchema = mongoose.Schema({
     amount: {
       type: Double,
       required: true,
+      default: 0,
     },
     discount: {
       type: Double,
@@ -158,6 +161,7 @@ const orderSchema = mongoose.Schema({
     totalamount: {
       type: Double,
       required: true,
+      default: 0,
     },
     installation: {
       type: Double,
@@ -196,6 +200,52 @@ const orderSchema = mongoose.Schema({
     default: Date.now,
   },
 });
+
+orderSchema.methods.calculateTotals= async function(){
+  const order = this;
+  let Orderamount = 0
+  let Ordertotalamount = 0
+  let Ordershipping = 0
+  let Orderinstallation = 0
+  await this.orderitems.map(item=>{
+    itemamount = item.sku.price.sellingprice 
+                            * (item.quantity.delivered 
+                              ||item.quantity.shipped 
+                              ||item.quantity.confirmed 
+                              ||item.quantity.booked);
+    itemdiscount = item.sku.price.discount 
+                            * (item.quantity.delivered 
+                              ||item.quantity.shipped 
+                              ||item.quantity.confirmed 
+                              ||item.quantity.booked)
+    itemtotalamount = itemdiscount ? (itemamount - itemdiscount) : itemamount;
+    itemshipping = item.sku.price.shippingcharges 
+                            * (item.quantity.shipped 
+                              ||item.quantity.confirmed 
+                              ||item.quantity.booked);
+    iteminstallation = item.sku.price.installationcharges 
+                            * (item.quantity.delivered 
+                              || item.quantity.shipped 
+                              || item.quantity.confirmed 
+                              || item.quantity.booked);
+    item.amount = item.amount || {};
+    item.amount.amount = itemamount;
+    item.amount.discount = itemdiscount || 0;
+    item.amount.totalamount = itemtotalamount;
+    //increment order amounts
+    Orderamount += itemtotalamount;
+    Ordershipping += itemshipping;
+    Orderinstallation += iteminstallation;
+  })
+  //calculate order total amounts
+  order.amount.amount = Orderamount
+  order.amount.shipping = order.amount.shipping || Ordershipping;
+  order.amount.installation = order.amount.installation || Orderinstallation;
+  Ordertotalamount = Orderamount - order.amount.discount;
+  order.amount.totalamount = Ordertotalamount
+  await order.save()
+  return order
+}
 
 const orderModel = mongoose.model("Order", orderSchema);
 

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "litcom-service-rest",
+    "image": "791195057071.dkr.ecr.ap-south-1.amazonaws.com/litcom-service-rest:latest",
+    "cpu": 0,
+    "memoryReservation": 512,
+    "portMappings": [
+      {
+        "containerPort": 3002,
+        "hostPort": 3002,
+        "protocol": "tcp"
+      }
+    ],
+    "essential": true,
+    "environment": [
+      {
+        "name": "NODE_ENV",
+        "value": "staging"
+      }
+    ],
+    "mountPoints": [],
+    "volumesFrom": [],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/litcom-service-rest",
+        "awslogs-region": "ap-south-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }
+]
