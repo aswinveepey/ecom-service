@@ -99,8 +99,9 @@ const customerSchema = mongoose.Schema({
 
 customerSchema.index(
   {
-    firstname: "text",
-    lastname: "text",
+    "firstname": "text",
+    "lastname": "text",
+    "auth.mobilenumber": "text",
   },
   {
     name: "customer_search_index",

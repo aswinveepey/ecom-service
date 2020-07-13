@@ -88,6 +88,46 @@ async function registerCustomer(req, res) {
     return res.status(400).json({ message: err });
   }
 }
+
+async function selfUpdateCustomer(req, res) {
+  try {
+    var {
+      firstname,
+      lastname,
+      gender,
+      birthday,
+      contactnumber,
+      address,
+    } = req.body;
+
+    var customer;
+    auth = req.auth
+    if(!auth) res.status(401).json({message: "Issue verifying auth token"})
+    //create customer
+    await customerModel
+      .findOneAndUpdate({auth: auth},{
+        firstname: firstname,
+        lastname: lastname,
+        type: "Regular",
+        gender: gender,
+        birthday: birthday,
+        contactnumber: contactnumber,
+        address: address,
+      })
+      .then((data) => {
+        customer = data;
+      })
+      .catch((err) => {
+        // console.log(err);
+        return res.status(400).json({ error: err });
+      });
+    return res.json({ data: customer });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ message: err });
+  }
+}
+
 async function createCustomer(req, res) {
   try {
     var {
@@ -227,4 +267,5 @@ module.exports = {
   searchCustomer,
   getSelf,
   registerCustomer,
+  selfUpdateCustomer,
 };

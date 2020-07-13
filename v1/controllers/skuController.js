@@ -120,6 +120,8 @@ async function searchSku(req, res) {
   try {
     skuModel
       .find({ $text: { $search: searchString } })
+      .populate("product")
+      .populate("inventory")
       .limit(3)
       .exec(function (err, docs) {
         if (err) {

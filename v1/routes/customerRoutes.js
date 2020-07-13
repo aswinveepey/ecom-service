@@ -12,6 +12,7 @@ customerRouter.post("/search", user, customerController.searchCustomer);
 
 //self accessed routes
 customerRouter.get("/self", customerController.getSelf);
+customerRouter.post("/self", customerController.selfUpdateCustomer);
 customerRouter.post("/register", customerController.registerCustomer);
 
 module.exports = { customerRouter };

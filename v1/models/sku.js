@@ -147,7 +147,8 @@ const skuSchema = mongoose.Schema({
 
 skuSchema.index(
   {
-    name: "text",
+    "name": "text",
+    "product.name": "text"
   },
   {
     name: "sku_search_index",
