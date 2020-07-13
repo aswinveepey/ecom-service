@@ -2,13 +2,20 @@ const mongoose = require("mongoose");
 const divisionModel = require('../models/division')
 
 async function getDivisions(req, res){
-  const divisions = await divisionModel.find().lean().limit(250);
+  const divisions = await divisionModel
+    .find()
+    .populate("categories")
+    .lean()
+    .limit(100);
   res.json({ data: divisions });
 }
 async function getOneDivision(req, res){
   try {
     const { divisionId } = req.params;
-    division = await divisionModel.findById(divisionId).lean();
+    division = await divisionModel
+      .findById(divisionId)
+      .populate("categories")
+      .lean();
     return res.json({ data: division });
   } catch (error) {
     return res.status(400).json({ message: error });

@@ -1,11 +1,35 @@
 const mongoose = require("mongoose");
 const skuModel = require("../models/sku");
 
+// Get all skus for listing skus, limited to a 100 records. Filterable using filterparms
+// filterby - supports category, & brand
+//filtervalue - supports ID fields
 async function getAllSkus(req, res) {
   try {
-    skus = await skuModel.find().populate("product").lean().limit(250);
+    //get query params
+    const { filterBy, filterValue } = req.query;
+    skus = [];
+
+    //validate Filter Value
+    if (!mongoose.Types.ObjectId.isValid(filterValue))
+      res.status(400).json({ message: "Invalid ID passed as filter value" });
+
+    //validate query parms and assign conditional
+    if (filterBy?.toLowerCase() === "category" && filterValue !== "") {
+      //filter by category
+      skus = await skuModel.findByCategory(filterValue);
+    } else if (filterBy?.toLowerCase() === "brand" && filterValue !== "") {
+      //filter by brand
+      skus = await skuModel.findByCategory(filterValue);
+    } else {
+      //default - no filter
+      skus = await skuModel.find().populate("product").lean().limit(100);
+    }
+
+    //return query results
     return res.json({ data: skus });
   } catch (error) {
+    console.log(error);
     return res.status(400).json({ message: error });
   }
 }
@@ -76,11 +100,11 @@ async function updateSku(req, res) {
     } = req.body;
     user = req.user;
 
-    inventory.forEach(data => {
+    inventory.forEach((data) => {
       if (!mongoose.Types.ObjectId.isValid(data.territory._id)) {
         return res.status(400).json({ message: "Invalid Territory ID" });
       }
-      data.territory = data.territory._id
+      data.territory = data.territory._id;
     });
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid SKU ID" });
@@ -110,7 +134,7 @@ async function updateSku(req, res) {
     );
     return res.json(sku);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return res.status(400).json({ message: err });
   }
 }

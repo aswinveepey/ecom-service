@@ -174,6 +174,14 @@ skuSchema.index(
   }
 );
 
+skuSchema.statics.findByCategory = async function (categoryId) {
+  return this.find().populate({path: "product", match: { category: categoryId }}).limit(100).lean()
+}
+
+skuSchema.statics.findByBrand = async function (categoryId) {
+  return this.find().populate({path: "product", match: { brand: categoryId }}).limit(100).lean()
+}
+
 const skuModel = mongoose.model("Sku", skuSchema);
 
 module.exports = skuModel;

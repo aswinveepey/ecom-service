@@ -28,12 +28,10 @@ const collectionSchema = mongoose.Schema({
   startdate: {
     type: Date,
     required: true,
-    default: Date.now,
   },
   enddate: {
     type: Date,
     required: true,
-    default: Date.now,
   },
   status: {
     type: Boolean,
