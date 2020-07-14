@@ -12,10 +12,12 @@ const accountSchema = mongoose.Schema({
     enum: ["Corporate", "Enterprise", "Other"],
   },
   gstin: {
-    unique: true,
     type: String,
-    sparse: true,
     trim: true,
+    index: {
+      unique: true,
+      partialFilterExpression: { gstin: { $type: "string" } },
+    },
   },
   primarycontact: {
     name: {
@@ -44,9 +46,9 @@ const accountSchema = mongoose.Schema({
   },
   address: [
     {
-      name:{
+      name: {
         type: String,
-        required: true
+        required: true,
       },
       address1: {
         type: String,

@@ -17,13 +17,15 @@ const AuthScehema = mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    sparse: true
+    sparse: true,
   },
   email: {
     type: String,
-    unique: true,
-    sparse:true,
     lowercase: true,
+    index: {
+      unique: true,
+      partialFilterExpression: { email: { $type: "string" } },
+    },
     validate: (value) => {
       if (!validator.isEmail(value)) {
         throw new Error({ error: "Invalid Email address" });

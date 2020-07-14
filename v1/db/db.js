@@ -15,7 +15,7 @@ if (process.env.NODE_ENV==="production"){
     .connect(process.env.MONGODB_URL, {
       useNewUrlParser: true,
       useCreateIndex: true,
-      autoIndex: false,
+      autoIndex: true,
       useUnifiedTopology: true,
       socketTimeoutMS: 300000,
     })

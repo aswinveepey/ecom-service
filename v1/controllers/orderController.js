@@ -28,9 +28,7 @@ async function getAllOrders(req, res) {
 async function getOneOrder(req, res) {
   try {
     const { orderId } = req.params;
-    order = await orderModel
-      .findById(orderId)
-      .lean();
+    order = await orderModel.findById(orderId).lean();
     return res.json({ data: order });
   } catch (error) {
     return res.status(400).json({ message: error });
@@ -39,19 +37,18 @@ async function getOneOrder(req, res) {
 
 async function createOrder(req, res) {
   try {
-    var {
-      customer,
-      orderitems,
-      amount,
-      payment
-    } = req.body;
+    var { customer, orderitems, amount, payment } = req.body;
 
     //get user from request
     user = req.user;
-    if(!customer.customer) res.status(400).json({message:"Customer Required"})
+    if (!customer.customer) {
+      return res.status(400).json({ message: "Customer Required" });
+    }
 
     //check if customer id is valid
-    if (!mongoose.Types.ObjectId.isValid(customer.customer._id)) res.status(400).json({ message: "Invalid customer ID" })
+    if (!mongoose.Types.ObjectId.isValid(customer.customer._id)) {
+      return res.status(400).json({ message: "Invalid customer ID" });
+    }
 
     //get current customer
     currentCustomer = await customerModel
@@ -60,25 +57,35 @@ async function createOrder(req, res) {
       .catch((err) => console.log(err));
 
     //check if customer is valid
-    if(!currentCustomer) res.status(400).json({ message: "Specified Customer could not be found" });
-    !currentCustomer.address[0] && res.status(400).json({ message: "Ensure Customer address is valid" }); 
+    if (!currentCustomer) {
+      return res
+        .status(400)
+        .json({ message: "Specified Customer could not be found" });
+    }
+    if (!currentCustomer.address[0]) {
+      return res
+        .status(400)
+        .json({ message: "Ensure Customer address is valid" });
+    }
 
     //assign customer to customer.customer
-    customer.customer = currentCustomer
+    customer.customer = currentCustomer;
     customer.deliveryaddress = currentCustomer.address[0];
     customer.billingaddress = currentCustomer.address[0];
 
     //ensure order items include atleast 1 sku
-    if(orderitems.length  === 0){
-      return res.status(400).json({message:"Atleast One Sku should be present"})
+    if (orderitems.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Atleast One Sku should be present" });
     }
-
     //loop through order items and perform operations
-    processeditems = await Promise.all(
+    await Promise.all(
       orderitems.map(async (item, index) => {
         //check if sku id is valid
-        if (!mongoose.Types.ObjectId.isValid(item.sku._id))
-          res.status(400).json({ message: "Invalid customer ID" });
+        if (!mongoose.Types.ObjectId.isValid(item.sku._id)) {
+          throw new Error("Invalid customer ID");
+        }
         //get sku
         sku = await skuModel
           .findById(item.sku._id)
@@ -86,47 +93,44 @@ async function createOrder(req, res) {
           .lean()
           .catch((err) => console.log(err));
         //if invalid sku return error
-        if (!sku) res.status(400).json({message: "Specified SKU could not be found",index: index,});
+        if (!sku) {
+          throw new Error("Specified SKU could not be found");
+        }
         //assign sku from query
         item.sku = sku;
 
         //Booked Quantity Validations
         //min qty rule
-        if (!item.quantity.booked >= sku.quantityrules.minorderqty)
-          res.status(400).json({
-            message: `Quantity should be greater than or equal ${sku.quantityrules.minorderqty}`,
-            index: index,
-          });
+        if (!(item.quantity.booked >= sku.quantityrules.minorderqty)) {
+          throw new Error(`Quantity should be greater than or equal ${sku.quantityrules.minorderqty}`);
+        }
         //min qty step rule
         if (
-          sku.quantityrules.minorderqtystep &&
+          sku.quantityrules.minorderqtystep && (sku.quantityrules.minorderqty !=0) &&
           !(item.quantity.booked % sku.quantityrules.minorderqty === 0)
-        )
-          res
-            .status(400)
-            .json({
-              message: "Minimum order qty multiples rules violated",
-              index: index,
-            });
+        ) {
+          throw new Error("Minimum order qty multiples rules violated");
+        }
         // max qty rule
         if (
-          (sku.quantityrules.maxorderqty != 0) &&
-          (item.quantity.booked > sku.quantityrules.maxorderqty)
-        )
-          res
-            .status(400)
-            .json({
-              message: `Quantity should be lesser than ${sku.quantityrules.maxorderqty}`,
-            });
+          sku.quantityrules.maxorderqty != 0 &&
+          item.quantity.booked > sku.quantityrules.maxorderqty
+        ) {
+          throw new Error(`Quantity should be lesser than ${sku.quantityrules.maxorderqty}`);
+        }
         //Inventory Operations
         //check if inventory for particular sku exists
-        !sku.inventory[0]&&res.status(400).json({message:"No inventory for selected sku",index: index,});
+        if (!sku.inventory[0]) {
+            throw new Error("No inventory for selected sku");
+        }
         //check if inventory gte booked qty
-        if (!sku.inventory[0] >= item.quantity.booked) res.status(400).json({message:"OOS for selected territory",index: index,});
-        
+        if (!sku.inventory[0] >= item.quantity.booked) {
+          throw new Error("OOS for selected territory");
+        }
+
         //capture territory information
         item.quantity.territory = sku.inventory[0].territory;
-        
+
         //set default status
         item.status = "Booked";
       })
@@ -138,70 +142,79 @@ async function createOrder(req, res) {
         payment: payment,
         orderitems: orderitems,
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err)
+        // return res.status(400).json({ message: err });
+      });
     order = await order.calculateTotals();
     return res.json({ data: order });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    // return res.status(400).json({ message: error });
   }
 }
 
 async function updateOrder(req, res) {
-    try {
-      
-      //get variables from request body
-      var { _id, customer, orderitems, amount, payment } = req.body;
-      //get user from request
-      user = req.user;
-      
-      //validate order id and order
-      if (!mongoose.Types.ObjectId.isValid(_id))
-        res.status(400).json({ message: "Invalid Order ID" });
-      order = await orderModel.findById(_id).populate("customer").populate("orderitems").populate("payments").populate("amount")
-      if(!order) res.status(400).json({message: "Order Not Found"})
-      
-      //change customer address
-      order.customer.deliveryaddress = customer.deliveryaddress
-      order.customer.billingaddress = customer.billingaddress
-      
-      //change order items
-      orderitems.map((item, index)=>{
-        //assign quantity items
-        //if shipping qty not set, allow confirmed qty modification
-        !item.quantity.shipped && (order.orderitems[index].quantity.confirmed = item.quantity.confirmed);
-        //if delivered qty not set allow shipping qty modification
-        !item.quantity.delivered && (order.orderitems[index].quantity.shipped = item.quantity.shipped);
-        order.orderitems[index].quantity.delivered = item.quantity.delivered
-        order.orderitems[index].quantity.returned = item.quantity.returned
+  try {
+    //get variables from request body
+    var { _id, customer, orderitems, amount, payment } = req.body;
+    //get user from request
+    user = req.user;
 
-        //assign statuses
-        if(item.status === "Cancelled") res.status(400).json({message:"Cancellation Not Supported"})
-        order.orderitems[index].status = item.status;
+    //validate order id and order
+    if (!mongoose.Types.ObjectId.isValid(_id))
+      res.status(400).json({ message: "Invalid Order ID" });
+    order = await orderModel
+      .findById(_id)
+      .populate("customer")
+      .populate("orderitems")
+      .populate("payments")
+      .populate("amount");
+    if (!order) res.status(400).json({ message: "Order Not Found" });
 
-        //manage discount applied
-        order.orderitems[index].amount.discount = item.amount.discount;
-      });
+    //change customer address
+    order.customer.deliveryaddress = customer.deliveryaddress;
+    order.customer.billingaddress = customer.billingaddress;
 
-      //manage order amount fields
-      order.amount.discount = amount.discount
-      order.amount.installation = amount.installation;
-      order.amount.shipping = amount.shipping;
+    //change order items
+    orderitems.map((item, index) => {
+      //assign quantity items
+      //if shipping qty not set, allow confirmed qty modification
+      !item.quantity.shipped &&
+        (order.orderitems[index].quantity.confirmed = item.quantity.confirmed);
+      //if delivered qty not set allow shipping qty modification
+      !item.quantity.delivered &&
+        (order.orderitems[index].quantity.shipped = item.quantity.shipped);
+      order.orderitems[index].quantity.delivered = item.quantity.delivered;
+      order.orderitems[index].quantity.returned = item.quantity.returned;
 
-      order.payment = payment
-      //save order & return
-      await order.save()
-      //calculate totals
-      order = await order.calculateTotals();
+      //assign statuses
+      if (item.status === "Cancelled")
+        res.status(400).json({ message: "Cancellation Not Supported" });
+      order.orderitems[index].status = item.status;
 
-      //return
-      return res.json({ data: order });
-    } catch (error) {
+      //manage discount applied
+      order.orderitems[index].amount.discount = item.amount.discount;
+    });
 
-      //catch error & return
-      console.log(error);
-      return res.status(400).json({ message: error });
-    }
+    //manage order amount fields
+    order.amount.discount = amount.discount;
+    order.amount.installation = amount.installation;
+    order.amount.shipping = amount.shipping;
+
+    order.payment = payment;
+    //save order & return
+    await order.save();
+    //calculate totals
+    order = await order.calculateTotals();
+
+    //return
+    return res.json({ data: order });
+  } catch (error) {
+    //catch error & return
+    console.log(error);
+    return res.status(400).json({ message: error });
+  }
 }
 
 async function searchOrder(req, res) {
