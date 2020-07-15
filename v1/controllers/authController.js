@@ -12,7 +12,7 @@ async function createAuth(req, res) {
     auth = new authModel(payload);
     await auth.save();
     token = await auth.generateAuthToken();
-    return res.json({ token: token });
+    return res.json({ data: token });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ message: err.message });
@@ -23,7 +23,7 @@ async function usernameAuth(req, res) {
     const { username, password } = req.body;
     auth = await authModel.usernameAuth(username, password);
     const token = await auth.generateAuthToken();
-    return res.json({ token: token });
+    return res.json({ data: token });
   } catch (err) {
     return res.status(401).json({ message: err.message });
   }
