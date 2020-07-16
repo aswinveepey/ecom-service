@@ -25,6 +25,23 @@ async function getAllOrders(req, res) {
   }
 }
 
+async function customerOrderhistory(req, res) {
+  auth = req.auth._id
+  customer = await customerModel.findOne({ auth: auth._id }).limit(1);
+  !customer && res.status(400).json({ message: "Customer Not Found" });
+  console.log(customer);
+  try {
+    orders = await orderModel
+      .find({"customer.customer._id": customer._id})
+      .populate({ path: "orderitems.sku.product", select: "name" })
+      .lean()
+      .limit(250);
+    return res.json({ data: orders });
+  } catch (error) {
+    return res.status(400).json({ message: error });
+  }
+}
+
 async function getOneOrder(req, res) {
   try {
     const { orderId } = req.params;
@@ -242,4 +259,5 @@ module.exports = {
   getOneOrder,
   updateOrder,
   searchOrder,
+  customerOrderhistory,
 };
