@@ -68,7 +68,7 @@ async function searchDivision(req, res) {
   try {
     divisionModel
       .find({ $text: { $search: searchString } })
-      .select("name _id")
+      .populate("categories")
       .limit(3)
       .exec(function (err, docs) {
         if (err) {

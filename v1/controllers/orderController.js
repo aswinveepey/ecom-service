@@ -178,23 +178,19 @@ async function updateOrder(req, res) {
 
     //change order items
     orderitems.map((item, index) => {
-      //assign quantity items
-      //if shipping qty not set, allow confirmed qty modification
-      !item.quantity.shipped &&
-        (order.orderitems[index].quantity.confirmed = item.quantity.confirmed);
-      //if delivered qty not set allow shipping qty modification
-      !item.quantity.delivered &&
-        (order.orderitems[index].quantity.shipped = item.quantity.shipped);
-      order.orderitems[index].quantity.delivered = item.quantity.delivered;
-      order.orderitems[index].quantity.returned = item.quantity.returned;
+      if (order.orderitems[index].status!=="Cancelled"){
+        //assign quantity items
+        //if shipping qty not set, allow confirmed qty modification
+        !item.quantity.shipped && (order.orderitems[index].quantity.confirmed = item.quantity.confirmed);
+        //if delivered qty not set allow shipping qty modification
+        !item.quantity.delivered && (order.orderitems[index].quantity.shipped = item.quantity.shipped);
+        order.orderitems[index].quantity.delivered = item.quantity.delivered;
+        order.orderitems[index].quantity.returned = item.quantity.returned;
 
-      //assign statuses
-      if (item.status === "Cancelled")
-        res.status(400).json({ message: "Cancellation Not Supported" });
-      order.orderitems[index].status = item.status;
-
-      //manage discount applied
-      order.orderitems[index].amount.discount = item.amount.discount;
+        order.orderitems[index].status = item.status;
+        //manage discount applied
+        order.orderitems[index].amount.discount = item.amount.discount;
+      }
     });
 
     //manage order amount fields

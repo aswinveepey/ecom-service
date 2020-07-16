@@ -207,7 +207,7 @@ orderSchema.methods.calculateTotals= async function(){
   let Ordertotalamount = 0
   let Ordershipping = 0
   let Orderinstallation = 0
-  await this.orderitems.map(item=>{
+  await this.orderitems.filter(item=>item.status!=="Cancelled").map(item=>{
     itemamount = item.sku.price.sellingprice 
                             * (item.quantity.delivered 
                               ||item.quantity.shipped 

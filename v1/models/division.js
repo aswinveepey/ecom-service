@@ -5,7 +5,6 @@ const divisionSchema = mongoose.Schema({
     type: String,
     unique: true,
     required: true,
-    lowercase: true,
   },
   categories: [
     {
