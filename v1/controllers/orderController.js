@@ -98,10 +98,10 @@ async function createOrder(req, res) {
     }
     //loop through order items and perform operations
     await Promise.all(
-      orderitems.map(async (item, index) => {
+      orderitems.map(async (item) => {
         //check if sku id is valid
         if (!mongoose.Types.ObjectId.isValid(item.sku._id)) {
-          throw new Error("Invalid customer ID");
+          throw new Error("Invalid SKU ID");
         }
         //get sku
         sku = await skuModel

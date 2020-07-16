@@ -8,6 +8,6 @@ orderRouter.get("/id/:orderId", orderController.getOneOrder);
 orderRouter.get("/getHistory", orderController.customerOrderhistory);
 orderRouter.post("/", user, orderController.createOrder);
 orderRouter.post("/id/:orderId", user, orderController.updateOrder);
-orderRouter.post("/search", orderController.searchOrder);
+orderRouter.post("/search", user, orderController.searchOrder);
 
 module.exports = { orderRouter };
