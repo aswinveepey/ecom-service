@@ -13,6 +13,7 @@ const cartSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Sku",
         required: true,
+        unique:true
       },
       quantity: {
         type: mongoose.Schema.Types.Number,

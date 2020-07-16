@@ -16,6 +16,7 @@ const { productRouter } = require("./productRoutes");
 const { skuRouter } = require("./skuRoutes");
 const { assetRouter } = require("./assetRoutes");
 const { orderRouter } = require("./orderRoutes");
+const { cartRouter } = require("./cartRoutes");
 const {auth} = require('../middlewares/auth')
 
 routes.use("/auth", authRouter);
@@ -34,6 +35,7 @@ routes.use("/product", auth, productRouter);
 routes.use("/sku", auth, skuRouter);
 routes.use("/asset", auth, assetRouter);
 routes.use("/order", auth, orderRouter);
+routes.use("/cart", auth, cartRouter);
 //Swagger
 /**
  * @swagger

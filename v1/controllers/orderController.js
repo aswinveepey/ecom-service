@@ -27,7 +27,7 @@ async function getAllOrders(req, res) {
 
 async function customerOrderhistory(req, res) {
   auth = req.auth._id
-  customer = await customerModel.findOne({ auth: auth._id }).limit(1);
+  customer = await customerModel.findOne({ auth: auth._id });
   !customer && res.status(400).json({ message: "Customer Not Found" });
   console.log(customer);
   try {
