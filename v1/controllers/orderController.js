@@ -164,7 +164,7 @@ async function createOrder(req, res) {
         // return res.status(400).json({ message: err });
       });
     order = await order.calculateTotals();
-    return res.json({ data: order });
+    return res.json({ data: order, message: "Succesfully created the order" });
   } catch (error) {
     console.log(error);
     // return res.status(400).json({ message: error });
@@ -222,7 +222,7 @@ async function updateOrder(req, res) {
     order = await order.calculateTotals();
 
     //return
-    return res.json({ data: order });
+    return res.json({ data: order, message: "Succesfully updated the order" });
   } catch (error) {
     //catch error & return
     console.log(error);

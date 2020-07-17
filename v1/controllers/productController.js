@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const productModel = require("../models/product");
-const skuModel = require("../models/sku");
-const { json } = require("body-parser");
 
 async function getAllProducts(req, res) {
   try {
@@ -61,7 +59,7 @@ async function createProduct(req, res) {
       logistics: logistics,
       gst: gst,
     });
-    return res.json({ data: product });
+    return res.json({ data: product, message:"Product Successfully Created" });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error });
@@ -111,7 +109,7 @@ async function updateProduct(req, res) {
       },
       { new: true }
     );
-    return res.json(product);
+    return res.json({ data: product, message: "Product Successfully Updated" });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error });
