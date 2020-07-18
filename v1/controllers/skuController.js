@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const skuModel = require("../models/sku");
+const productModel = require("../models/product");
 
 // Get all skus for listing skus, limited to a 100 records. Filterable using filterparms
 // filterby - supports category, & brand
@@ -17,10 +18,26 @@ async function getAllSkus(req, res) {
     //validate query parms and assign conditional
     if (filterBy?.toLowerCase() === "category" && filterValue !== "") {
       //filter by category
-      skus = await skuModel.findByCategory(filterValue);
+      productIds = await productModel
+        .find({ category: filterValue })
+        .select("_id")
+        .lean();
+      skus = await skuModel
+        .find({ product: { $in: productIds } })
+        .populate("product")
+        .limit(100)
+        .lean();
     } else if (filterBy?.toLowerCase() === "brand" && filterValue !== "") {
       //filter by brand
-      skus = await skuModel.findByCategory(filterValue);
+      productIds = await productModel
+        .find({ brand: filterValue })
+        .select("_id")
+        .lean();
+      skus = await skuModel
+        .find({ product: { $in: productIds } })
+        .populate("product")
+        .limit(100)
+        .lean();
     } else {
       //default - no filter
       skus = await skuModel.find().populate("product").lean().limit(100);

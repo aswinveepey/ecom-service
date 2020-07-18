@@ -8,6 +8,7 @@ async function getAllOrders(req, res) {
   try {
     orders = await orderModel
       .find()
+      .sort({createdat:-1})
       .populate({ path: "orderitems.sku.product", select: "name" })
       .populate({
         path: "customer.customer.auth",
