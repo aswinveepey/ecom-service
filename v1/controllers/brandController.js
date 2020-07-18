@@ -1,4 +1,6 @@
 const brandModel = require("../models/brand");
+const categoryModel = require("../models/category");
+const productModel = require("../models/product");
 const mongoose = require("mongoose");
 
 async function getAllBrands(req, res) {
@@ -13,9 +15,19 @@ async function getAllBrands(req, res) {
 async function getOneBrand(req, res) {
   try {
     const { brandId } = req.params;
-    brand = await categoryModel.findById(brandId).lean();
-    return res.json({ data: brand });
+    brand = await brandModel.findById(brandId).lean();
+    products = await productModel
+      .find({ brand: brandId })
+      .select("category")
+      .lean();
+    categoryIds = await products.map((item) => item.category);
+    categories = await categoryModel
+      .find({ '_id': { $in: [...new Set(categoryIds)] } })
+      .lean();
+    console.log(categories);
+    return res.json({ data: {brand:brand, categories: categories} });
   } catch (error) {
+    console.log(error)
     return res.status(400).json({ message: error });
   }
 }
