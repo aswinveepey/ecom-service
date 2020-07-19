@@ -31,6 +31,38 @@ const skuSchema = mongoose.Schema({
         required: true,
         default: 0,
       },
+      mrp: {
+        type: Double,
+        required: true,
+      },
+      discount: {
+        type: Double,
+        required: true,
+        default: 0,
+      },
+      sellingprice: {
+        type: Double,
+        required: true,
+      },
+      purchaseprice: {
+        type: Double,
+        required: true,
+      },
+      shippingcharges: {
+        type: Double,
+        required: true,
+        default: 0,
+      },
+      installationcharges: {
+        type: Double,
+        required: true,
+        default: 0,
+      },
+      status: {
+        type: Boolean,
+        required: true,
+        default: true,
+      },
     },
   ],
   assets: {
@@ -76,6 +108,10 @@ const skuSchema = mongoose.Schema({
       default: 0,
     },
     sellingprice: {
+      type: Double,
+      required: true,
+    },
+    purchaseprice: {
       type: Double,
       required: true,
     },

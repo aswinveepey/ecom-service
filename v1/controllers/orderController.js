@@ -88,8 +88,8 @@ async function createOrder(req, res) {
 
     //assign customer to customer.customer
     customer.customer = currentCustomer;
-    customer.deliveryaddress = currentCustomer.address[0];
-    customer.billingaddress = currentCustomer.address[0];
+    // customer.deliveryaddress = currentCustomer.address[0];
+    // customer.billingaddress = currentCustomer.address[0];
 
     //ensure order items include atleast 1 sku
     if (orderitems.length === 0) {
@@ -116,7 +116,8 @@ async function createOrder(req, res) {
         }
         //assign sku from query
         item.sku = sku;
-
+        //get inventory based on customer territory - TODO
+        item.selectedInventoryIndex=0;
         //Booked Quantity Validations
         //min qty rule
         if (!(item.quantity.booked >= sku.quantityrules.minorderqty)) {
@@ -138,11 +139,13 @@ async function createOrder(req, res) {
         }
         //Inventory Operations
         //check if inventory for particular sku exists
-        if (!sku.inventory[0]) {
-            throw new Error("No inventory for selected sku");
+        if (!sku.inventory[item.selectedInventoryIndex]) {
+          throw new Error("No inventory for selected sku");
         }
         //check if inventory gte booked qty
-        if (!sku.inventory[0] >= item.quantity.booked) {
+        if (
+          !sku.inventory[item.selectedInventoryIndex] >= item.quantity.booked
+        ) {
           throw new Error("OOS for selected territory");
         }
 

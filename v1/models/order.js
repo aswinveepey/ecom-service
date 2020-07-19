@@ -73,12 +73,11 @@ const orderSchema = mongoose.Schema({
         default: shortid.generate,
       },
       sku: skuSchema,
+      selectedInventoryIndex: {
+        type: mongoose.Schema.Types.Number,
+        required: true,
+      },
       quantity: {
-        territory: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Territory",
-          required: true,
-        },
         booked: {
           type: mongoose.Schema.Types.Number,
           required: true,
@@ -201,51 +200,57 @@ const orderSchema = mongoose.Schema({
   },
 });
 
-orderSchema.methods.calculateTotals= async function(){
+orderSchema.methods.calculateTotals = async function () {
   const order = this;
-  let Orderamount = 0
-  let Ordertotalamount = 0
-  let Ordershipping = 0
-  let Orderinstallation = 0
-  await this.orderitems.filter(item=>item.status!=="Cancelled").map(item=>{
-    itemamount = item.sku.price.sellingprice 
-                            * (item.quantity.delivered 
-                              ||item.quantity.shipped 
-                              ||item.quantity.confirmed 
-                              ||item.quantity.booked);
-    itemdiscount = item.sku.price.discount 
-                            * (item.quantity.delivered 
-                              ||item.quantity.shipped 
-                              ||item.quantity.confirmed 
-                              ||item.quantity.booked)
-    itemtotalamount = itemdiscount ? (itemamount - itemdiscount) : itemamount;
-    itemshipping = item.sku.price.shippingcharges 
-                            * (item.quantity.shipped 
-                              ||item.quantity.confirmed 
-                              ||item.quantity.booked);
-    iteminstallation = item.sku.price.installationcharges 
-                            * (item.quantity.delivered 
-                              || item.quantity.shipped 
-                              || item.quantity.confirmed 
-                              || item.quantity.booked);
-    item.amount = item.amount || {};
-    item.amount.amount = itemamount;
-    item.amount.discount = itemdiscount || 0;
-    item.amount.totalamount = itemtotalamount;
-    //increment order amounts
-    Orderamount += itemtotalamount;
-    Ordershipping += itemshipping;
-    Orderinstallation += iteminstallation;
-  })
+  let Orderamount = 0;
+  let Ordertotalamount = 0;
+  let Ordershipping = 0;
+  let Orderinstallation = 0;
+  await this.orderitems
+    .filter((item) => item.status !== "Cancelled")
+    .map((item) => {
+      itemamount =
+        item.sku.inventory[item.selectedInventoryIndex].sellingprice *
+        (item.quantity.delivered ||
+          item.quantity.shipped ||
+          item.quantity.confirmed ||
+          item.quantity.booked);
+      itemdiscount =
+        item.sku.inventory[item.selectedInventoryIndex].discount *
+        (item.quantity.delivered ||
+          item.quantity.shipped ||
+          item.quantity.confirmed ||
+          item.quantity.booked);
+      itemtotalamount = itemdiscount ? itemamount - itemdiscount : itemamount;
+      itemshipping =
+        item.sku.inventory[item.selectedInventoryIndex].shippingcharges *
+        (item.quantity.shipped ||
+          item.quantity.confirmed ||
+          item.quantity.booked);
+      iteminstallation =
+        item.sku.inventory[item.selectedInventoryIndex].installationcharges *
+        (item.quantity.delivered ||
+          item.quantity.shipped ||
+          item.quantity.confirmed ||
+          item.quantity.booked);
+      item.amount = item.amount || {};
+      item.amount.amount = itemamount;
+      item.amount.discount = itemdiscount || 0;
+      item.amount.totalamount = itemtotalamount;
+      //increment order amounts
+      Orderamount += itemtotalamount;
+      Ordershipping += itemshipping;
+      Orderinstallation += iteminstallation;
+    });
   //calculate order total amounts
-  order.amount.amount = Orderamount
+  order.amount.amount = Orderamount;
   order.amount.shipping = order.amount.shipping || Ordershipping;
   order.amount.installation = order.amount.installation || Orderinstallation;
   Ordertotalamount = Orderamount - order.amount.discount;
-  order.amount.totalamount = Ordertotalamount
-  await order.save()
-  return order
-}
+  order.amount.totalamount = Ordertotalamount;
+  await order.save();
+  return order;
+};
 
 const orderModel = mongoose.model("Order", orderSchema);
 

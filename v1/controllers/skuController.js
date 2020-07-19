@@ -86,10 +86,15 @@ async function createSku(req, res) {
       quantityrules,
     } = req.body;
     user = req.user;
-    price.sellingprice = price.mrp - price.discount;
     if (!mongoose.Types.ObjectId.isValid(product)) {
       return res.status(400).json({ message: "Invalid product ID" });
     }
+    inventory.forEach((data) => {
+      if (!mongoose.Types.ObjectId.isValid(data.territory._id)) {
+        return res.status(400).json({ message: "Invalid Territory ID" });
+      }
+      data.territory = data.territory._id;
+    });
     sku = await skuModel.create({
       name: name,
       product: product,
@@ -123,7 +128,6 @@ async function updateSku(req, res) {
       quantityrules,
     } = req.body;
     user = req.user;
-
     inventory.forEach((data) => {
       if (!mongoose.Types.ObjectId.isValid(data.territory._id)) {
         return res.status(400).json({ message: "Invalid Territory ID" });
