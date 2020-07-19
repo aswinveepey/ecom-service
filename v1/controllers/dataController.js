@@ -8,13 +8,12 @@ async function getCustomerCount(req, res){
     // activeCustomers = customers.filter(customer=>customer.auth)
     customerData = await customerModel.aggregate([
       {
-        $lookup:
-          {
-            from: "auths",
-            localField: "auth",
-            foreignField: "_id",
-            as: "auth"
-          }
+        $lookup: {
+          from: "auths",
+          localField: "auth",
+          foreignField: "_id",
+          as: "auth",
+        },
       },
       { $unwind: "$auth" },
       {
@@ -70,9 +69,18 @@ async function getMonthlyGMV(req, res){
     monthGmv = await orderModel.aggregate([
       {
         $group: {
-          _id: {$month:"$createdat"},
+          _id: {
+            $dateToString: {
+              date: "$createdat",
+              format: "%Y-%m-%d",
+              timezone: "Asia/Kolkata",
+            },
+          },
           total: { $sum: "$amount.totalamount" },
         },
+      },
+      {
+        $sort: { _id: 1 },
       },
     ]);
     res.json({data:monthGmv})

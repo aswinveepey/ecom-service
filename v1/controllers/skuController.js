@@ -24,7 +24,7 @@ async function getAllSkus(req, res) {
         .lean();
       skus = await skuModel
         .find({ product: { $in: productIds } })
-        .populate("product")
+        .populate({ path: "product", populate: { path: "category" } })
         .limit(100)
         .lean();
     } else if (filterBy?.toLowerCase() === "brand" && filterValue !== "") {
@@ -36,11 +36,18 @@ async function getAllSkus(req, res) {
       skus = await skuModel
         .find({ product: { $in: productIds } })
         .populate("product")
+        .populate({ path: "product", populate: { path: "brand" } })
         .limit(100)
         .lean();
     } else {
       //default - no filter
-      skus = await skuModel.find().populate("product").lean().limit(100);
+      skus = await skuModel
+        .find()
+        .populate("product")
+        .populate("product.category")
+        .populate("product.brand")
+        .lean()
+        .limit(100);
     }
 
     //return query results

@@ -24,7 +24,6 @@ async function getOneBrand(req, res) {
     categories = await categoryModel
       .find({ '_id': { $in: [...new Set(categoryIds)] } })
       .lean();
-    console.log(categories);
     return res.json({ data: {brand:brand, categories: categories} });
   } catch (error) {
     console.log(error)
