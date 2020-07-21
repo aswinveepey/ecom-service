@@ -20,7 +20,12 @@ async function getAllProducts(req, res) {
 async function getOneProduct(req, res) {
   try {
     const { productId } = req.params;
-    product = await productModel.findById(productId).lean();
+    product = await productModel
+      .findById(productId)
+      .populate("category")
+      .populate("brand")
+      .populate("skus")
+      .lean();
     return res.json({ data: product });
   } catch (error) {
     return res.status(400).json({ message: error });

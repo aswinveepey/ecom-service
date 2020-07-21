@@ -18,27 +18,38 @@ async function getAllSkus(req, res) {
     //validate query parms and assign conditional
     if (filterBy?.toLowerCase() === "category" && filterValue !== "") {
       //filter by category
-      productIds = await productModel
-        .find({ category: filterValue })
-        .select("_id")
-        .lean();
-      skus = await skuModel
-        .find({ product: { $in: productIds } })
-        .populate({ path: "product", populate: { path: "category" } })
-        .limit(100)
-        .lean();
+      skus = await skuModel.aggregate([
+        {
+          $lookup: {
+            from: "products",
+            localField: "product",
+            foreignField: "_id",
+            as: "product",
+          },
+        },
+        { $unwind: "$product" },
+        {
+          $match: { "product.category": mongoose.Types.ObjectId(filterValue) },
+        },
+        { $limit: 100 },
+      ]);
     } else if (filterBy?.toLowerCase() === "brand" && filterValue !== "") {
       //filter by brand
-      productIds = await productModel
-        .find({ brand: filterValue })
-        .select("_id")
-        .lean();
-      skus = await skuModel
-        .find({ product: { $in: productIds } })
-        .populate("product")
-        .populate({ path: "product", populate: { path: "brand" } })
-        .limit(100)
-        .lean();
+      skus = await skuModel.aggregate([
+        {
+          $lookup: {
+            from: "products",
+            localField: "product",
+            foreignField: "_id",
+            as: "product",
+          },
+        },
+        { $unwind: "$product" },
+        {
+          $match: { "product.brand": mongoose.Types.ObjectId(filterValue) },
+        },
+        { $limit: 100 },
+      ]);
     } else {
       //default - no filter
       skus = await skuModel
@@ -46,8 +57,8 @@ async function getAllSkus(req, res) {
         .populate("product")
         .populate("product.category")
         .populate("product.brand")
-        .lean()
-        .limit(100);
+        .limit(100)
+        .lean();
     }
 
     //return query results

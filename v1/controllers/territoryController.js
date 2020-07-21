@@ -6,6 +6,12 @@ async function getTerritories(req, res) {
   res.json({ data: territories });
 }
 
+async function getOneTerritory(req, res) {
+  const { territoryId } = req.params;
+  const territory = await territoryModel.findById(territoryId).lean();
+  res.json({ data: territory });
+}
+
 async function createTerritory(req, res) {
   try {
     const { name, pincodes } = req.body;
@@ -43,4 +49,9 @@ async function searchTerritory(req, res) {
   }
 }
 
-module.exports = { getTerritories, createTerritory, searchTerritory };
+module.exports = {
+  getTerritories,
+  createTerritory,
+  searchTerritory,
+  getOneTerritory,
+};
