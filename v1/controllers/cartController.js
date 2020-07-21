@@ -3,32 +3,42 @@ const orderModel = require("../models/order");
 const customerModel = require("../models/customer");
 const cartModel = require("../models/cart");
 const skuModel = require("../models/sku");
+const skuRules = require("../services/orderValidations")
+const territoryMappingService = require("../services/territoryMappingService")
 
 // add items to cart
 // create cart if not exists
 
-async function getSelfCart(req, res){
+async function getSelfCart(req, res) {
   try {
-    auth = req.auth._id;
-    customer = await customerModel.findOne({ auth: auth._id });
+    customer = req.customer;
     !customer && res.status(400).json({ message: "Customer Not Found" });
     cart = await cartModel
       .findOne({ customer: customer._id })
-      .populate("cartitems.sku").lean();
-    return res.json({ data: cart });  
+      .populate("cartitems.sku")
+      .lean();
+    return res.json({ data: cart });
   } catch (error) {
     console.log(error);
-    res.status(400).json({ message: error });
+    res.status(400).json({ message: error.message });
   }
 }
 
 async function addtoCart(req, res) {
   try {
-    auth = req.auth._id;
+    customer = req.customer;
     var { sku, quantity } = req.body;
-    customer = await customerModel.findOne({ auth: auth._id });
     !customer && res.status(400).json({ message: "Customer Not Found" });
-
+    //validate SKU
+    if (!mongoose.Types.ObjectId.isValid(sku))
+      res.status(400).json({ message: "Invalid SKU ID provided" });
+    //fetch sku data
+    skuData = await skuModel.findOne({ _id: sku, status: true });
+    // if not sku return error message
+    if (!skuData) throw new Error("SKU OOS or inactive");
+    //Validate quantity rules
+    await skuRules.validateSkuQuantityRules(skuData, quantity)
+    // Update Cart
     cart = await cartModel.findOneAndUpdate(
       { customer: customer._id },
       {
@@ -41,7 +51,8 @@ async function addtoCart(req, res) {
     cart.save();
     return res.json({ data: cart });
   } catch (error) {
-    res.status(400).json({ message: error });
+    console.log(error);
+    res.status(400).json({ message: error.message });
   }
 }
 
@@ -54,20 +65,23 @@ async function checkout(req, res) {
       discount: 0,
       totalamount: 0,
       installation: 0,
-      shipping:0,
+      shipping: 0,
     };
     let orderitems = [];
     let payments = [];
-    currentCustomer = await customerModel.findOne({ auth: auth._id });
+    currentCustomer = req.customer;
     !currentCustomer && res.status(400).json({ message: "Customer Not Found" });
     //assign customer to customer.customer
     customer.customer = currentCustomer;
-    customer.deliveryaddress = currentCustomer.address[0];
-    customer.billingaddress = currentCustomer.address[0];
+    customer.deliveryaddress = currentCustomer.address[currentCustomer.currentaddressindex];
+    customer.billingaddress = currentCustomer.address[currentCustomer.currentaddressindex];
+
+    mappedTerritories = await territoryMappingService.mapTerritory(customer.deliveryaddress.pincode);
+    
     cart = await cartModel
-      .findOne({ "customer._id": customer._id })
-      .populate("customer")
-      .populate("cartitems.sku");
+        .findOne({ "customer._id": customer._id })
+        .populate("customer")
+        .populate("cartitems.sku");
     //ensure order items include atleast 1 sku
     if (cart.cartitems.length === 0) {
       return res.status(400).json({ message: "No items in cart" });
@@ -81,39 +95,17 @@ async function checkout(req, res) {
           throw new Error("Invalid SKU ID");
         }
         //get sku
-        sku = await skuModel
-          .findById(item.sku._id)
-          .populate("inventory")
-          .lean()
-          .catch((err) => console.log(err));
+        skus = await skuModel.aggregate([
+          {$match:{_id:item.sku._id}}
+        ])
+        sku=skus[0]
         //if invalid sku return error
         if (!sku) {
-          throw new Error("Specified SKU could not be found");
+          throw new Error("Specified SKU could not be found for the selected address");
         }
-        //Booked Quantity Validations
-        //min qty rule
-        if (!(item.quantity >= sku.quantityrules.minorderqty)) {
-          throw new Error(
-            `Quantity should be greater than or equal ${sku.quantityrules.minorderqty}`
-          );
-        }
-        //min qty step rule
-        if (
-          sku.quantityrules.minorderqtystep &&
-          sku.quantityrules.minorderqty != 0 &&
-          !(item.quantity % sku.quantityrules.minorderqty === 0)
-        ) {
-          throw new Error("Minimum order qty multiples rules violated");
-        }
-        // max qty rule
-        if (
-          sku.quantityrules.maxorderqty != 0 &&
-          item.quantity > sku.quantityrules.maxorderqty
-        ) {
-          throw new Error(
-            `Quantity should be lesser than ${sku.quantityrules.maxorderqty}`
-          );
-        }
+        //Quantity Rule Validations
+        await skuRules.validateSkuQuantityRules(sku, item.quantity);
+
         //Inventory Operations
         //check if inventory for particular sku exists
         if (!sku.inventory[0]) {
@@ -125,6 +117,7 @@ async function checkout(req, res) {
         }
         //assign sku to order item
         orderitem.sku = sku;
+        orderitem.selectedInventoryIndex = 0;
         orderitem.quantity = {};
         orderitem.quantity.booked = item.quantity;
         //capture territory information
@@ -143,17 +136,17 @@ async function checkout(req, res) {
       })
       .catch((err) => {
         console.log(err);
-        // return res.status(400).json({ message: err });
+        return res.status(400).json({ message: err.message });
       });
-    if(order){
+    if (order) {
       cart.cartitems = [];
       cart.save();
     }
     order = await order.calculateTotals();
     return res.json({ data: order });
   } catch (error) {
-    console.log(error)
-    res.status(400).json({ message: error });
+    console.log(error);
+    res.status(400).json({ message: error.message });
   }
 }
 

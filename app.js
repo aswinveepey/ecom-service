@@ -1,8 +1,9 @@
 var express = require("express");
-const Sentry = require("@sentry/node");
-var logger = require("morgan");
-const bodyParser = require("body-parser");
+var Sentry = require("@sentry/node");
+var morgan = require("morgan");
+var bodyParser = require("body-parser");
 var cors = require("cors");
+var compression = require("compression");
 
 //env config
 require("dotenv").config();
@@ -36,9 +37,11 @@ app.use(Sentry.Handlers.requestHandler());
 //cors
 app.use(cors());
 //logger middleware and config
-app.use(logger("dev"));
+app.use(morgan("tiny"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+// compress all responses
+app.use(compression())
 //swagger middleware
 app.use(
   "/api-docs",

@@ -12,7 +12,7 @@ async function getAllSkus(req, res) {
     skus = [];
 
     //validate Filter Value
-    if (!mongoose.Types.ObjectId.isValid(filterValue))
+    if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
       res.status(400).json({ message: "Invalid ID passed as filter value" });
 
     //validate query parms and assign conditional

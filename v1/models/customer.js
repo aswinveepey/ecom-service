@@ -26,6 +26,11 @@ const customerSchema = mongoose.Schema({
   contactnumber: {
     type: String,
   },
+  currentaddressindex: {
+    type: String,
+    required:true,
+    default:0
+  },
   address: [
     {
       name:{
