@@ -44,54 +44,57 @@ const accountSchema = mongoose.Schema({
       type: String,
     },
   },
-  address: [
-    {
-      name: {
-        type: String,
-        required: true,
+  address: {
+    type: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        address1: {
+          type: String,
+          required: true,
+        },
+        address2: {
+          type: String,
+        },
+        landmark: {
+          type: String,
+          required: true,
+        },
+        area: {
+          type: String,
+          required: true,
+        },
+        district: {
+          type: String,
+          required: true,
+        },
+        state: {
+          type: String,
+          required: true,
+        },
+        country: {
+          type: String,
+          required: true,
+          default: "IN",
+        },
+        pincode: {
+          type: String,
+          required: true,
+        },
+        lat: {
+          type: String,
+          required: true,
+        },
+        long: {
+          type: String,
+          required: true,
+        },
       },
-      address1: {
-        type: String,
-        required: true,
-      },
-      address2: {
-        type: String,
-      },
-      landmark: {
-        type: String,
-        required: true,
-      },
-      area: {
-        type: String,
-        required: true,
-      },
-      district: {
-        type: String,
-        required: true,
-      },
-      state: {
-        type: String,
-        required: true,
-      },
-      country: {
-        type: String,
-        required: true,
-        default: "IN",
-      },
-      pincode: {
-        type: String,
-        required: true,
-      },
-      lat: {
-        type: String,
-        required: true,
-      },
-      long: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
+    ],
+    validate: [arrayLimit, "{PATH} exceeds the limit of 10"],
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -111,6 +114,10 @@ const accountSchema = mongoose.Schema({
     default: Date.now,
   },
 });
+
+function arrayLimit(val) {
+  return val.length <= 10;
+}
 
 accountSchema.index(
   {

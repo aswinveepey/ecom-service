@@ -7,7 +7,7 @@ const customer = async (req, res, next) => {
     req.customer = customer;
     next();
   } catch (error) {
-    res.status(401).send({ message: "Error retrieving customer" });
+    res.status(400).send({ message: "Error while retrieving customer" });
   }
 };
 

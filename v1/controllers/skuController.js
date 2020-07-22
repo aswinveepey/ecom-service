@@ -9,57 +9,56 @@ async function getAllSkus(req, res) {
   try {
     //get query params
     const { filterBy, filterValue } = req.query;
+    const territories = req.territories;
+    let territoriesArray = [];
+    territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
+    console.log(territoriesArray);
     skus = [];
-
+    //if territories, filter sku results by territories
     //validate Filter Value
     if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
       res.status(400).json({ message: "Invalid ID passed as filter value" });
-
-    //validate query parms and assign conditional
-    if (filterBy?.toLowerCase() === "category" && filterValue !== "") {
-      //filter by category
-      skus = await skuModel.aggregate([
-        {
-          $lookup: {
-            from: "products",
-            localField: "product",
-            foreignField: "_id",
-            as: "product",
-          },
-        },
-        { $unwind: "$product" },
-        {
-          $match: { "product.category": mongoose.Types.ObjectId(filterValue) },
-        },
-        { $limit: 100 },
-      ]);
-    } else if (filterBy?.toLowerCase() === "brand" && filterValue !== "") {
-      //filter by brand
-      skus = await skuModel.aggregate([
-        {
-          $lookup: {
-            from: "products",
-            localField: "product",
-            foreignField: "_id",
-            as: "product",
-          },
-        },
-        { $unwind: "$product" },
-        {
-          $match: { "product.brand": mongoose.Types.ObjectId(filterValue) },
-        },
-        { $limit: 100 },
-      ]);
-    } else {
-      //default - no filter
-      skus = await skuModel
-        .find()
-        .populate("product")
-        .populate("product.category")
-        .populate("product.brand")
-        .limit(100)
-        .lean();
+    //init query
+    let filterquery = {};
+    //based on filter conditions update query
+    if (filterBy && filterValue) {
+      if (filterBy.toLowerCase()==="category"){
+        filterquery = {
+          "product.category": mongoose.Types.ObjectId(filterValue),
+        };
+      } else if (filterBy.toLowerCase()==="brand"){
+        filterquery = {
+          "product.brand": mongoose.Types.ObjectId(filterValue),
+        };
+      }
     }
+    //sku actual query. If no filter return all
+    skus = await skuModel.aggregate([
+      {
+        $lookup: {
+          from: "products",
+          localField: "product",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      { $unwind: "$product" },
+      {
+        $match: filterquery,
+      },
+      // {
+      //   $project: {
+      //     inventory: {
+      //       $filter: {
+      //         input: "$inventory",
+      //         as: "inventory",
+      //         cond: { "inventory.territory": { $in: territoriesArray } },
+      //       },
+      //     },
+      //   },
+      // },
+      { $limit: 100 },
+    ]);
 
     //return query results
     return res.json({ data: skus });

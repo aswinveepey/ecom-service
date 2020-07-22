@@ -20,6 +20,7 @@ const { cartRouter } = require("./cartRoutes");
 const { dataRouter } = require("./dataRoutes");
 const {auth} = require('../middlewares/auth')
 const {customer} = require('../middlewares/customer')
+const {territory} = require('../middlewares/territory')
 
 routes.use("/auth", authRouter);
 // routes.use("/dash",auth, dashRouter);
@@ -33,11 +34,11 @@ routes.use("/account", auth, accountRouter);
 routes.use("/customer", auth, customer, customerRouter);
 routes.use("/category", auth, customer, categoryRouter);
 routes.use("/brand", auth, customer, brandRouter);
-routes.use("/product", auth, customer, productRouter);
-routes.use("/sku", auth, customer, skuRouter);
+routes.use("/product", auth, customer,territory, productRouter);
+routes.use("/sku", auth, customer,territory, skuRouter);
 routes.use("/asset", auth, assetRouter);
-routes.use("/order", auth, customer, orderRouter);
-routes.use("/cart", auth, customer, cartRouter);
+routes.use("/order", auth, customer,territory, orderRouter);
+routes.use("/cart", auth, customer,territory, cartRouter);
 routes.use("/data", auth, dataRouter);
 //Swagger
 /**
