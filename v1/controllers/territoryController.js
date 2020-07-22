@@ -16,12 +16,11 @@ async function createTerritory(req, res) {
   try {
     const { name, pincodes } = req.body;
     territory = new territoryModel({ name: name, status:true });
-    await territory.save();
-    await pincodes.forEach((element) => {
-      // permissionsObj = PermissionModel.findOne({ id: element.id });
-      territory.pincodes.push(element.id);
-    });
-    await territory.save();
+    territory = await territory.save();
+    territory = await territoryModel.update(
+      { _id: territory._id },
+      { $addToSet: { pincodes: pincodes } }
+    );
     res.json({ message: "Territory Added Succesfully" });
   } catch (err) {
     console.log(err);
@@ -48,11 +47,6 @@ async function updateTerritory(req, res) {
       },
       { new: true }
     );
-    // await pincodes?.forEach((element) => {
-    //   // permissionsObj = PermissionModel.findOne({ id: element.id });
-    //   (element.length>0) && territory.pincodes.push(element);
-    // });
-    // territory.save();
     res.json({ message: "Territory Added Succesfully" });
   } catch (err) {
     console.log(err);

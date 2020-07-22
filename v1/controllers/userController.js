@@ -166,7 +166,7 @@ async function getUserNav(req, res) {
     { nav: "/catalog", label: "Catalog", name: "catalog" },
     { nav: "/customer", label: "Customers", name: "customers" },
     { nav: "/order", label: "Orders", name: "orders" },
-    { nav: "/territory", label: "Territories", name: "territories" },
+    { nav: "/admin", label: "Admin", name: "admin" },
   ];
   return res.json({ data : data});
 }
