@@ -1,5 +1,5 @@
 const territoryModel = require("../models/territory");
-// const permissionModel = require('../models/permission')
+const mongoose = require("mongoose");
 
 async function getTerritories(req, res) {
   const territories = await territoryModel.find().lean();
@@ -15,13 +15,44 @@ async function getOneTerritory(req, res) {
 async function createTerritory(req, res) {
   try {
     const { name, pincodes } = req.body;
-    territory = new territoryModel({ name: name });
-    territory.save();
-    pincodes.forEach((element) => {
+    territory = new territoryModel({ name: name, status:true });
+    await territory.save();
+    await pincodes.forEach((element) => {
       // permissionsObj = PermissionModel.findOne({ id: element.id });
       territory.pincodes.push(element.id);
-      territory.save();
     });
+    await territory.save();
+    res.json({ message: "Territory Added Succesfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ error: err });
+  }
+}
+async function updateTerritory(req, res) {
+  try {
+    const { _id, name, pincodes, status } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      return res.status(400).json({ message: "Invalid Territory ID" });
+    }
+    territory = await territoryModel.findByIdAndUpdate(
+      mongoose.Types.ObjectId(_id),
+      {
+        $set: {
+          name: name,
+          status: status,
+          updatedat: Date.now(),
+        },
+        $addToSet:{
+          pincodes:pincodes
+        }
+      },
+      { new: true }
+    );
+    // await pincodes?.forEach((element) => {
+    //   // permissionsObj = PermissionModel.findOne({ id: element.id });
+    //   (element.length>0) && territory.pincodes.push(element);
+    // });
+    // territory.save();
     res.json({ message: "Territory Added Succesfully" });
   } catch (err) {
     console.log(err);
@@ -34,7 +65,6 @@ async function searchTerritory(req, res) {
   try {
     territoryModel
       .find({ $text: { $search: searchString } })
-      .select("name _id")
       .limit(3)
       .exec(function (err, docs) {
         if (err) {
@@ -54,4 +84,5 @@ module.exports = {
   createTerritory,
   searchTerritory,
   getOneTerritory,
+  updateTerritory,
 };

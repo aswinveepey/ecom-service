@@ -6,15 +6,26 @@ const territorySchema = mongoose.Schema({
     unique: true,
     required: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   pincodes: [
     {
       type: String,
-      trim: true
+      trim: true,
+      required:true
     },
   ],
+  status: {
+    type: Boolean,
+    required: true,
+    default: true,
+  },
   createdat: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
+  updatedat: {
     type: Date,
     required: true,
     default: Date.now,
@@ -24,6 +35,7 @@ const territorySchema = mongoose.Schema({
 territorySchema.index(
   {
     name: "text",
+    pincodes: "text",
   },
   {
     name: "territory_search_index",
