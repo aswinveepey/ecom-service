@@ -1,7 +1,7 @@
 const territory = require("../models/territory")
 
 //return territories corresponding to pincode. If not throw error
-async function mapTerritory(pincode){
+async function mapPincodeToTerritory(pincode){
   territories = await territory.aggregate([
     { $match: { $or: [{ name: "Default" }, { pincodes: pincode }] } },
   ]);
@@ -12,4 +12,4 @@ async function mapTerritory(pincode){
   }
 }
 
-module.exports = { mapTerritory };
+module.exports = { mapPincodeToTerritory };

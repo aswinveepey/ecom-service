@@ -76,7 +76,9 @@ async function checkout(req, res) {
     customer.deliveryaddress = currentCustomer.address[currentCustomer.currentaddressindex];
     customer.billingaddress = currentCustomer.address[currentCustomer.currentaddressindex];
 
-    mappedTerritories = await territoryMappingService.mapTerritory(customer.deliveryaddress.pincode);
+    mappedTerritories = await territoryMappingService.mapPincodeToTerritory(
+      customer.deliveryaddress.pincode
+    );
     
     cart = await cartModel
         .findOne({ "customer._id": customer._id })

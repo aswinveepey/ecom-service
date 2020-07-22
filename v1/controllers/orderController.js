@@ -86,7 +86,7 @@ async function createOrder(req, res) {
     //assign customer to customer.customer
     customer.customer = currentCustomer;
     
-    mappedTerritories = await territoryMappingService.mapTerritory(customer.deliveryaddress.pincode);
+    mappedTerritories = await territoryMappingService.mapPincodeToTerritory(customer.deliveryaddress.pincode);
 
     //ensure order items include atleast 1 sku
     if (orderitems.length === 0) {
