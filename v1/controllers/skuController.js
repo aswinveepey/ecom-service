@@ -10,28 +10,47 @@ async function getAllSkus(req, res) {
     //get query params
     const { filterBy, filterValue } = req.query;
     const territories = req.territories;
+    
+    //init variables
+    let skus = [];
     let territoriesArray = [];
+    let filterQuery = {};
+    let territoryQuery = {};
+    let unselectQuery = {}
+
+    //map territories obj array to string array
     territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
-    console.log(territoriesArray);
-    skus = [];
-    //if territories, filter sku results by territories
+
     //validate Filter Value
     if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
       res.status(400).json({ message: "Invalid ID passed as filter value" });
-    //init query
-    let filterquery = {};
+    
+    if (req.customer){
+      unselectQuery = {
+        "price.purchaseprice": 0,
+        "inventory.purchaseprice": 0,
+      };
+    }
+
+    //assign territory query if territories
+    if ((territoriesArray.length > 0) && req.customer) {
+      console.log(territoriesArray);
+      territoryQuery = { "inventory.territory": { $in: territoriesArray } };
+    }
+
     //based on filter conditions update query
     if (filterBy && filterValue) {
       if (filterBy.toLowerCase()==="category"){
-        filterquery = {
+        filterQuery = {
           "product.category": mongoose.Types.ObjectId(filterValue),
         };
       } else if (filterBy.toLowerCase()==="brand"){
-        filterquery = {
+        filterQuery = {
           "product.brand": mongoose.Types.ObjectId(filterValue),
         };
       }
     }
+
     //sku actual query. If no filter return all
     skus = await skuModel.aggregate([
       {
@@ -42,21 +61,15 @@ async function getAllSkus(req, res) {
           as: "product",
         },
       },
-      { $unwind: "$product" },
+      { $unwind: "$product" }, //look up returns array - convert to object
       {
-        $match: filterquery,
+        $match: {
+          $and: [filterQuery, territoryQuery], //returns colleciton based on queries - does not filter the inventory
+        },
       },
-      // {
-      //   $project: {
-      //     inventory: {
-      //       $filter: {
-      //         input: "$inventory",
-      //         as: "inventory",
-      //         cond: { "inventory.territory": { $in: territoriesArray } },
-      //       },
-      //     },
-      //   },
-      // },
+      {
+        $project: unselectQuery, //hide purchase price from data sent
+      },
       { $limit: 100 },
     ]);
 
@@ -166,6 +179,7 @@ async function updateSku(req, res) {
         },
         $push: {
           updatelog: { updatedby: user._id },
+          $slice: -25,
         },
       },
       { new: true }

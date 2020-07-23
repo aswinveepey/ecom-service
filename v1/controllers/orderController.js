@@ -10,7 +10,7 @@ async function getAllOrders(req, res) {
   try {
     orders = await orderModel
       .find()
-      .sort({createdat:-1})
+      .sort({ createdat: -1 })
       .populate({ path: "orderitems.sku.product", select: "name" })
       .populate({
         path: "customer.customer.auth",
@@ -29,13 +29,13 @@ async function getAllOrders(req, res) {
 }
 
 async function customerOrderhistory(req, res) {
-  auth = req.auth._id
+  auth = req.auth._id;
   customer = await customerModel.findOne({ auth: auth._id });
   !customer && res.status(400).json({ message: "Customer Not Found" });
   console.log(customer);
   try {
     orders = await orderModel
-      .find({"customer.customer._id": customer._id})
+      .find({ "customer.customer._id": customer._id })
       .populate({ path: "orderitems.sku.product", select: "name" })
       .lean()
       .limit(250);
@@ -58,6 +58,8 @@ async function getOneOrder(req, res) {
 async function createOrder(req, res) {
   try {
     var { customer, orderitems, amount, payment } = req.body;
+    let territoriesArray = [];
+    let territoryQuery = {};
 
     //get user from request
     user = req.user;
@@ -85,8 +87,17 @@ async function createOrder(req, res) {
 
     //assign customer to customer.customer
     customer.customer = currentCustomer;
-    
-    mappedTerritories = await territoryMappingService.mapPincodeToTerritory(customer.deliveryaddress.pincode);
+
+    const territories = await territoryMappingService.mapPincodeToTerritory(
+      customer.deliveryaddress.pincode
+    );
+
+    territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
+
+    //assign territory query if territories
+    if (territoriesArray.length > 0) {
+      territoryQuery = { "inventory.territory": { $in: territoriesArray } };
+    }
 
     //ensure order items include atleast 1 sku
     if (orderitems.length === 0) {
@@ -94,6 +105,7 @@ async function createOrder(req, res) {
         .status(400)
         .json({ message: "Atleast One Sku should be present" });
     }
+
     //loop through order items and perform operations
     await Promise.all(
       orderitems.map(async (item) => {
@@ -103,22 +115,34 @@ async function createOrder(req, res) {
         }
         //get sku
         skus = await skuModel.aggregate([
-          { $match: { _id: mongoose.Types.ObjectId(item.sku._id) } },
+          {
+            $match: {
+              $and: [
+                { _id: mongoose.Types.ObjectId(item.sku._id) },
+                territoryQuery,
+              ],
+            },
+          },
         ]);
-        sku=skus[0]
+        //an array is returned so get the first object in array
+        sku = skus[0];
         //if invalid sku return error
         if (!sku) {
-          throw new Error("Invalid SKU - Servicability or SKU status could have changed");
+          throw new Error(
+            "SKU inactive or unservicable for selected territory"
+          );
         }
         //assign sku from query
         item.sku = sku;
         //get inventory based on customer territory - TODO
-        item.selectedInventoryIndex=0;
+        item.selectedInventoryIndex = 0;
         //Quantity Rule Validations
         await skuRules.validateSkuQuantityRules(sku, item.quantity.booked);
         //min qty rule
         if (!(item.quantity.booked >= sku.quantityrules.minorderqty)) {
-          throw new Error(`Quantity should be greater than or equal ${sku.quantityrules.minorderqty}`);
+          throw new Error(
+            `Quantity should be greater than or equal ${sku.quantityrules.minorderqty}`
+          );
         }
         //Inventory Operations
         //check if inventory for particular sku exists
@@ -133,7 +157,8 @@ async function createOrder(req, res) {
         }
 
         //capture territory information
-        item.quantity.territory = sku.inventory[item.selectedInventoryIndex].territory;
+        item.quantity.territory =
+          sku.inventory[item.selectedInventoryIndex].territory;
 
         //set default status
         item.status = "Booked";
@@ -147,11 +172,14 @@ async function createOrder(req, res) {
         orderitems: orderitems,
       })
       .catch((err) => {
-        console.log(err)
+        console.log(err);
         return res.status(400).json({ message: err.message });
       });
     order = await order.calculateTotals();
-    return res.json({ data: order, message: "Succesfully created the order" });
+    return res.json({
+      data: order,
+      message: "Succesfully created the order",
+    });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error.message });
@@ -182,12 +210,15 @@ async function updateOrder(req, res) {
 
     //change order items
     orderitems.map((item, index) => {
-      if (order.orderitems[index].status!=="Cancelled"){
+      if (order.orderitems[index].status !== "Cancelled") {
         //assign quantity items
         //if shipping qty not set, allow confirmed qty modification
-        !item.quantity.shipped && (order.orderitems[index].quantity.confirmed = item.quantity.confirmed);
+        !item.quantity.shipped &&
+          (order.orderitems[index].quantity.confirmed =
+            item.quantity.confirmed);
         //if delivered qty not set allow shipping qty modification
-        !item.quantity.delivered && (order.orderitems[index].quantity.shipped = item.quantity.shipped);
+        !item.quantity.delivered &&
+          (order.orderitems[index].quantity.shipped = item.quantity.shipped);
         order.orderitems[index].quantity.delivered = item.quantity.delivered;
         order.orderitems[index].quantity.returned = item.quantity.returned;
 
