@@ -34,7 +34,6 @@ async function getAllSkus(req, res) {
 
     //assign territory query if territories
     if ((territoriesArray.length > 0) && req.customer) {
-      console.log(territoriesArray);
       territoryQuery = { "inventory.territory": { $in: territoriesArray } };
     }
 
@@ -50,7 +49,28 @@ async function getAllSkus(req, res) {
         };
       }
     }
-
+    
+    const projectWithInvFilter = {
+      shortid: 1,
+      name: 1,
+      product: 1,
+      assets: 1,
+      attributes: 1,
+      dattributes: 1,
+      price: 1,
+      bulkdiscount: 1,
+      quantityrules: 1,
+      status: 1,
+      createdat: 1,
+      updatelog: 1,
+      inventory: {
+        $filter: {
+          input: "$inventory",
+          as: "inventory",
+          cond: { $in: ["$$inventory.territory", territoriesArray] },
+        },
+      },
+    };
     //sku actual query. If no filter return all
     skus = await skuModel.aggregate([
       {
@@ -68,7 +88,10 @@ async function getAllSkus(req, res) {
         },
       },
       {
-        $project: unselectQuery, //hide purchase price from data sent
+        $project: projectWithInvFilter, //select items & inv filter
+      },
+      {
+        $project: unselectQuery, //hide purchase prices for customer
       },
       { $limit: 100 },
     ]);

@@ -98,22 +98,25 @@ async function selfUpdateCustomer(req, res) {
       birthday,
       contactnumber,
       address,
+      currentaddressindex,
     } = req.body;
 
-    var customer;
-    auth = req.auth
-    if(!auth) res.status(401).json({message: "Issue verifying auth token"})
+    const customer = req.customer
+    currentaddressindex = currentaddressindex || 0;
+
+    if(!customer) res.status(401).json({message: "Invalid Customer"})
+
     //create customer
     await customerModel
-      .findOneAndUpdate({auth: auth},{
+      .findByIdAndUpdate(mongoose.Types.ObjectId(customer._id), {
         firstname: firstname,
         lastname: lastname,
-        type: "Regular",
         gender: gender,
         birthday: birthday,
         contactnumber: contactnumber,
         address: address,
-      })
+        currentaddressindex: currentaddressindex,
+      }, { new: true })
       .then((data) => {
         customer = data;
       })
@@ -121,7 +124,7 @@ async function selfUpdateCustomer(req, res) {
         // console.log(err);
         return res.status(400).json({ error: err });
       });
-    return res.json({ data: customer });
+    return res.json({ data: customer, message: "Customer Successfully Updated" });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ message: err });
@@ -172,7 +175,7 @@ async function createCustomer(req, res) {
         // console.log(err);
         return res.status(400).json({ error: err })
       });
-    return res.json({ data: customer });
+    return res.json({ data: customer, message: "Customer Successfully Created" });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ message: err });
@@ -186,22 +189,24 @@ async function updateCustomer(req, res) {
       type,
       firstname,
       lastname,
-      auth,
       account,
       gender,
       birthday,
       contactnumber,
       address,
+      currentaddressindex,
     } = req.body;
+
+    currentaddressindex = currentaddressindex || 0;
+
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid Customer ID" });
     }
+
     if (account && !mongoose.Types.ObjectId.isValid(account._id)) {
       return res.status(400).json({ message: "Invalid Account ID" });
     }
-    if (!mongoose.Types.ObjectId.isValid(auth._id)) {
-      return res.status(400).json({ message: "Invalid Auth ID" });
-    }
+
     customer = await customerModel.findByIdAndUpdate(
       mongoose.Types.ObjectId(_id),
       {
@@ -213,7 +218,8 @@ async function updateCustomer(req, res) {
           account: account?._id,
           gender: gender,
           birthday: birthday,
-          address: address
+          address: address,
+          currentaddressindex: currentaddressindex,
         },
       },
       { new: true }
@@ -226,7 +232,7 @@ async function updateCustomer(req, res) {
         status: auth.status,
       },
     });
-    return res.json(customer);
+    return res.json({ data: customer, message: "Customer Successfully Updated" });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error });

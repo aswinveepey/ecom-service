@@ -59,7 +59,7 @@ async function addtoCart(req, res) {
 async function checkout(req, res) {
   try {
     auth = req.auth._id;
-    let customer = {};
+    var {customer} = req.body
     let amount = {
       amount: 0,
       discount: 0,
@@ -69,22 +69,35 @@ async function checkout(req, res) {
     };
     let orderitems = [];
     let payments = [];
+    let territoriesArray = [];
+    let territoryQuery = {};
+    
     currentCustomer = req.customer;
     !currentCustomer && res.status(400).json({ message: "Customer Not Found" });
+    
     //assign customer to customer.customer
+    customer = customer || {}; //if not passed through request body
     customer.customer = currentCustomer;
-    customer.deliveryaddress = currentCustomer.address[currentCustomer.currentaddressindex];
-    customer.billingaddress = currentCustomer.address[currentCustomer.currentaddressindex];
+    customer.deliveryaddress = customer.deliveryaddress || currentCustomer.address[currentCustomer.currentaddressindex];
+    customer.billingaddress = customer.billingaddress || currentCustomer.address[currentCustomer.currentaddressindex];
 
-    mappedTerritories = await territoryMappingService.mapPincodeToTerritory(
+    const territories = await territoryMappingService.mapPincodeToTerritory(
       customer.deliveryaddress.pincode
     );
+
+    territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
+
+    //assign territory query if territories
+    if (territoriesArray.length > 0) {
+      territoryQuery = { "inventory.territory": { $in: territoriesArray } };
+    }
     
     cart = await cartModel
         .findOne({ "customer._id": customer._id })
         .populate("customer")
         .populate("cartitems.sku");
-    //ensure order items include atleast 1 sku
+    
+        //ensure order items include atleast 1 sku
     if (cart.cartitems.length === 0) {
       return res.status(400).json({ message: "No items in cart" });
     }
@@ -98,8 +111,15 @@ async function checkout(req, res) {
         }
         //get sku
         skus = await skuModel.aggregate([
-          {$match:{_id:item.sku._id}}
-        ])
+          {
+            $match: {
+              $and: [
+                { _id: mongoose.Types.ObjectId(item.sku._id) },
+                territoryQuery,
+              ],
+            },
+          },
+        ]);
         sku=skus[0]
         //if invalid sku return error
         if (!sku) {
