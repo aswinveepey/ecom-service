@@ -12,7 +12,7 @@ async function createAuth(req, res) {
     auth = new authModel(payload);
     await auth.save();
     token = await auth.generateAuthToken();
-    return res.json({ data: token });
+    return res.json({ data: token, message: "Authentication Created" });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ message: err.message });
@@ -23,7 +23,7 @@ async function usernameAuth(req, res) {
     const { username, password } = req.body;
     auth = await authModel.usernameAuth(username, password);
     const token = await auth.generateAuthToken();
-    return res.json({ data: token });
+    return res.json({ data: token, message:"Authentication Succesful" });
   } catch (err) {
     return res.status(401).json({ message: err.message });
   }
@@ -40,7 +40,7 @@ async function generateOtp(req, res){
     }
     const otp = await auth.generateOtp();
     //Dangerous - This should be handled via SMS only - Retain for testing purposes
-    return res.json({ otp: otp });
+    return res.json({ otp: otp, message: "OTP generated" });
   } catch (err) {
     return res.status(400).json({ message: err.message });
   }
@@ -50,7 +50,7 @@ async function otpAuth(req, res){
     const { mobilenumber, otp } = req.body;
     auth = await authModel.otpAuth(mobilenumber, otp);
     const token = await auth.generateAuthToken();
-    return res.json({ token: token });
+    return res.json({ token: token, message: "OTP Verified" });
   } catch (err) {
     return res.status(401).json({ message: err.message });
   }

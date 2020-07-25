@@ -14,7 +14,7 @@ async function getAllUsers(req,res){
       .limit(250);
     return res.json({ data: users });
   } catch (error) {
-    return res.status(400).json({message: error});
+    return res.status(400).json({message: error?.message});
   }
 }
 
@@ -30,7 +30,7 @@ async function getOneUser(req,res){
       .lean();
     return res.json({ data: user });
   } catch (error) {
-    return res.status(400).json({message: error});
+    return res.status(400).json({message: error?.message});
   }
 }
 
@@ -74,7 +74,7 @@ async function createUser(req, res) {
     return res.json({ data: user.auth.username });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ message: error?.message });
   }
 }
 
@@ -128,7 +128,7 @@ async function updateUser(req,res){
     return res.json(user);
   } catch (error) {
     console.log(error);
-    return res.status(400).json({message: error});
+    return res.status(400).json({message: error?.message});
   }
 }
 
@@ -146,13 +146,13 @@ async function searchUser(req, res){
       .limit(3)
       .exec(function (err, docs) {
         if (err) {
-          return res.status(400).json({ message: err });
+          return res.status(400).json({ message: err?.message });
         }
         return res.json({ data: docs });
       });
   } catch (error) {
     console.log(error)
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ message: error?.message });
   }
 }
 
@@ -171,6 +171,23 @@ async function getUserNav(req, res) {
   return res.json({ data : data});
 }
 
+async function getSelf(req, res){
+  try {
+    //fetch user details from request middleware
+    const user = req.user
+    //throw error if not user
+    if(!user) throw new Error("Invalid Credentials")
+    //return data
+    return res.json({data:user, message:"Succesfully fetched user details"})
+
+  } catch (error) {
+    //catch log & return error
+    console.log(error)
+    res.status(400).json({message:error?.message})
+
+  }
+}
+
 module.exports = {
   getAllUsers,
   createUser,
@@ -179,4 +196,5 @@ module.exports = {
   searchUser,
   getUserDash,
   getUserNav,
+  getSelf,
 };
