@@ -125,6 +125,7 @@ async function createOrder(req, res) {
           },
         ]);
         //an array is returned so get the first object in array
+        console.log(skus[0]);
         sku = skus[0];
         //if invalid sku return error
         if (!sku) {

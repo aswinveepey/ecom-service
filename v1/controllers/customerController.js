@@ -195,6 +195,7 @@ async function updateCustomer(req, res) {
       contactnumber,
       address,
       currentaddressindex,
+      auth
     } = req.body;
 
     currentaddressindex = currentaddressindex || 0;

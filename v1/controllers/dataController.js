@@ -4,8 +4,6 @@ const authModel = require("../models/auth")
 
 async function getCustomerCount(req, res){
   try {
-    // customers = await customerModel.find().populate("auth", null, {status:true}, ).lean()
-    // activeCustomers = customers.filter(customer=>customer.auth)
     customerData = await customerModel.aggregate([
       {
         $lookup: {
@@ -30,13 +28,35 @@ async function getCustomerCount(req, res){
   }
 }
 
-async function getCurrentGMV(req, res){
+async function getGmvdata(req, res){
   try {
-    const date = new Date()
-    const monthStartDate = new Date(date.getFullYear(), date.getMonth(), 1)
-    const monthEndDate = new Date(date.getFullYear(), date.getMonth()+1, 0)
+    const {filterBy} = req.query
+
+    let startDate;
+    let endDate;
+    const today = new Date()
+    today.setHours(0, 0, 0, 0);
+    var tomorrow = new Date(today); //assigns todays date
+    tomorrow.setDate(tomorrow.getDate()+1); //increment by 1 day
+
+    switch (filterBy) {
+      case "month":
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        break;
+
+      case "quarter":
+        startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        break;
+
+      default: //default to today
+        startDate = today;
+        endDate = tomorrow;
+        break;
+    }
     monthGmv = await orderModel.aggregate([
-      { $match: { createdat: { $gte: monthStartDate, $lte: monthEndDate } } },
+      { $match: { createdat: { $gte: startDate, $lte: endDate } } },
       { $unwind: "$amount" },
       { $group: { _id: null, total: { $sum: "$amount.totalamount" } } },
     ]);
@@ -47,24 +67,7 @@ async function getCurrentGMV(req, res){
   }
 }
 
-async function getQuarterGMV(req, res){
-  try {
-    const date = new Date()
-    const monthStartDate = new Date(date.getFullYear(), date.getMonth()-3, 1)
-    const monthEndDate = new Date(date.getFullYear(), date.getMonth()+1, 0)
-    console.log(monthStartDate+":"+monthEndDate)
-    monthGmv = await orderModel.aggregate([
-      {$match:{createdat:{$gte:monthStartDate, $lte:monthEndDate}}},
-      { $unwind: "$amount" },
-      { $group: { _id: null, total: { $sum: "$amount.totalamount" } } },
-    ]);
-    res.json({data:monthGmv})
-  } catch (error) {
-    console.log(error)
-    res.status(400).json({message:error})
-  }
-}
-async function getMonthlyGMV(req, res){
+async function getGmvTimeSeries(req, res){
   try {
     monthGmv = await orderModel.aggregate([
       {
@@ -92,7 +95,6 @@ async function getMonthlyGMV(req, res){
 
 module.exports = {
   getCustomerCount,
-  getCurrentGMV,
-  getQuarterGMV,
-  getMonthlyGMV,
+  getGmvdata,
+  getGmvTimeSeries,
 };
