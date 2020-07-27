@@ -162,7 +162,6 @@ async function getUserDash(req, res){
 async function getUserNav(req, res) {
   const data = [
     { nav: "/home", label: "Home", name: "home" },
-    { nav: "/user", label: "Users", name: "users" },
     { nav: "/catalog", label: "Catalog", name: "catalog" },
     { nav: "/customer", label: "Customers", name: "customers" },
     { nav: "/order", label: "Orders", name: "orders" },

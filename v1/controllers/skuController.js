@@ -25,7 +25,7 @@ async function getAllSkus(req, res) {
     if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
       res.status(400).json({ message: "Invalid ID passed as filter value" });
     
-    if (req.customer){
+    if (!req.user){
       unselectQuery = {
         "price.purchaseprice": 0,
         "inventory.purchaseprice": 0,
