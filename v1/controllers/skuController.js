@@ -42,7 +42,7 @@ async function getAllSkus(req, res) {
     if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
       res.status(400).json({ message: "Invalid ID passed as filter value" });
     
-    if (!req.user){
+    if (req.customer){
       unselectQuery = {
         "price.purchaseprice": 0,
         "inventory.purchaseprice": 0,
@@ -102,14 +102,87 @@ async function getAllSkus(req, res) {
 async function getOneSku(req, res) {
   try {
     const { skuId } = req.params;
-    sku = await skuModel
-      .findById(skuId)
-      .populate("product")
-      .populate({ path: "inventory.territory", select: "name" })
-      .lean();
-    return res.json({ data: sku });
+    const territories = req.territories;
+    let territoriesArray = [];
+    let territoryQuery = {};
+    let skus = [];
+    let unselectQuery = {
+        "price.purchaseprice": 0,
+        "inventory.purchaseprice": 0,
+        "product.skus.price.purchaseprice": 0,
+        "product.skus.inventory": 0,
+      };
+    let groupQuery = {
+      _id: "$_id",
+      shortid: { $first: "$shortid" },
+      name: { $first: "$name" },
+      product: { $first: "$product" },
+      assets: { $first: "$assets" },
+      attributes: { $first: "$attributes" },
+      dattributes: { $first: "$dattributes" },
+      price: { $first: "$price" },
+      bulkdiscount: { $first: "$bulkdiscount" },
+      quantityrules: { $first: "$quantityrules" },
+      status: { $first: "$status" },
+      createdat: { $first: "$createdat" },
+      updatelog: { $first: "$updatelog" },
+      inventory: { $first: "$inventory" },
+    };
+
+    //map territories to array of ids
+    territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
+
+    //assign territory query if territories
+    if ((territoriesArray.length > 0) && req.customer) {
+      territoryQuery = { "inventory.territory": { $in: territoriesArray } };
+    }
+
+    //get sku
+    if(req.customer){
+
+      skus = await skuModel.aggregate([
+        {
+          $match: {
+            //returns colleciton based on queries - does not filter the inventory
+            $and: [{ _id: mongoose.Types.ObjectId(skuId) }, territoryQuery],
+          },
+        },
+        { $unwind: "$inventory" },
+        {
+          $lookup: {
+            from: "products",
+            localField: "product",
+            foreignField: "_id",
+            as: "product",
+          },
+        },
+        { $unwind: "$product" }, //array of unwind queries
+        {
+          $lookup: {
+            from: "skus",
+            localField: "product._id",
+            foreignField: "product",
+            as: "product.skus",
+          },
+        },
+        { $project: unselectQuery },
+        { $group: groupQuery },
+      ]);
+
+    } else{
+
+      skus[0] = await skuModel
+        .findById(skuId)
+        .populate("product")
+        .populate({ path: "inventory.territory", select: "name" })
+        .lean();;
+
+    }
+    //return first instance
+    return res.json({ data: skus[0] });
   } catch (error) {
-    return res.status(400).json({ message: error });
+    console.log(error)
+    return res.status(400).json({ message: error.message });
   }
 }
 
