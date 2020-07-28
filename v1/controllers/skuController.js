@@ -159,6 +159,15 @@ async function getOneSku(req, res) {
         { $unwind: "$product" }, //array of unwind queries
         {
           $lookup: {
+            from: "brands",
+            localField: "product.brand",
+            foreignField: "_id",
+            as: "product.brand",
+          },
+        },
+        { $unwind: "$product.brand" }, //array of unwind queries
+        {
+          $lookup: {
             from: "skus",
             localField: "product._id",
             foreignField: "product",
