@@ -28,26 +28,31 @@ async function addtoCart(req, res) {
   try {
     customer = req.customer;
     var { sku, quantity } = req.body;
-    !customer && res.status(400).json({ message: "Customer Not Found" });
+    
+    //validate customer
+    if(!customer) throw new Erorr("Customer Not Found");
     //validate SKU
-    if (!mongoose.Types.ObjectId.isValid(sku))
-      res.status(400).json({ message: "Invalid SKU ID provided" });
+    if (!mongoose.Types.ObjectId.isValid(sku)) throw new Erorr("Invalid SKU ID provided")
+    
     //fetch sku data
     skuData = await skuModel.findOne({ _id: sku, status: true });
-    // if not sku return error message
+
+    // validate sku data
     if (!skuData) throw new Error("SKU OOS or inactive");
+    
     //Validate quantity rules
     await skuRules.validateSkuQuantityRules(skuData, quantity)
+    
     // Update Cart
     cart = await cartModel.findOneAndUpdate(
       { customer: customer._id },
       {
         $set: { customer: customer._id },
-        $pull: { cartitems: { sku: sku } },
+        $pull: { cartitems: { sku: skuData } },
       },
       { upsert: true, new: true }
     );
-    cart.cartitems.push({ sku: sku, quantity: quantity });
+    cart.cartitems.push({ sku: skuData, quantity: quantity });
     cart.save();
     return res.json({ data: cart });
   } catch (error) {

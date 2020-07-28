@@ -55,12 +55,12 @@ async function getGmvdata(req, res){
         endDate = tomorrow;
         break;
     }
-    monthGmv = await orderModel.aggregate([
+    gmvData = await orderModel.aggregate([
       { $match: { createdat: { $gte: startDate, $lte: endDate } } },
       { $unwind: "$amount" },
       { $group: { _id: null, total: { $sum: "$amount.totalamount" } } },
     ]);
-    res.json({data:monthGmv})
+    res.json({data:gmvData})
   } catch (error) {
     console.log(error)
     res.status(400).json({message:error})

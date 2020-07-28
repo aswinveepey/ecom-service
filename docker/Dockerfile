@@ -8,6 +8,8 @@ FROM node:14-alpine
 
 # copy and set work directory
 COPY . /litcom-service-rest
+COPY .env.staging /litcom-service-rest/.env
+
 WORKDIR /litcom-service-rest
 
 # install dependencies and clear redundant stuff

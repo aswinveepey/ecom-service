@@ -18,6 +18,23 @@ async function getAllSkus(req, res) {
     let territoryQuery = {};
     let unselectQuery = {}
 
+    const groupQuery = {
+      _id: "$_id",
+      shortid: { $first: "$shortid" },
+      name: { $first: "$name" },
+      product: { $first: "$product" },
+      assets: { $first: "$assets" },
+      attributes: { $first: "$attributes" },
+      dattributes: { $first: "$dattributes" },
+      price: { $first: "$price" },
+      bulkdiscount: { $first: "$bulkdiscount" },
+      quantityrules: { $first: "$quantityrules" },
+      status: { $first: "$status" },
+      createdat: { $first: "$createdat" },
+      updatelog: { $first: "$updatelog" },
+      inventory: { $first: "$inventory" },
+    };
+
     //map territories obj array to string array
     territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
 
@@ -50,27 +67,6 @@ async function getAllSkus(req, res) {
       }
     }
     
-    const projectWithInvFilter = {
-      shortid: 1,
-      name: 1,
-      product: 1,
-      assets: 1,
-      attributes: 1,
-      dattributes: 1,
-      price: 1,
-      bulkdiscount: 1,
-      quantityrules: 1,
-      status: 1,
-      createdat: 1,
-      updatelog: 1,
-      inventory: {
-        $filter: {
-          input: "$inventory",
-          as: "inventory",
-          cond: { $in: ["$$inventory.territory", territoriesArray] },
-        },
-      },
-    };
     //sku actual query. If no filter return all
     skus = await skuModel.aggregate([
       {
@@ -82,17 +78,16 @@ async function getAllSkus(req, res) {
         },
       },
       { $unwind: "$product" }, //look up returns array - convert to object
+      { $unwind: "$inventory" }, //look up returns array - convert to object
       {
         $match: {
           $and: [filterQuery, territoryQuery], //returns colleciton based on queries - does not filter the inventory
         },
       },
       {
-        $project: projectWithInvFilter, //select items & inv filter
-      },
-      {
         $project: unselectQuery, //hide purchase prices for customer
       },
+      {$group:groupQuery},
       { $limit: 100 },
     ]);
 
