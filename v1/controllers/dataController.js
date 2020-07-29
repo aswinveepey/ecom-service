@@ -5,6 +5,7 @@ const authModel = require("../models/auth")
 async function getCustomerCount(req, res){
   try {
     customerData = await customerModel.aggregate([
+      //first stage join auth to get status
       {
         $lookup: {
           from: "auths",
@@ -13,7 +14,9 @@ async function getCustomerCount(req, res){
           as: "auth",
         },
       },
+      //second stage - unwind auth
       { $unwind: "$auth" },
+      //third stage - group by auth status
       {
         $group: {
           _id: "$auth.status",
@@ -56,9 +59,25 @@ async function getGmvdata(req, res){
         break;
     }
     gmvData = await orderModel.aggregate([
+      // First Stage - match based on query params
       { $match: { createdat: { $gte: startDate, $lte: endDate } } },
+      //second stage
       { $unwind: "$amount" },
-      { $group: { _id: null, total: { $sum: "$amount.totalamount" } } },
+      //third stage - get sum of amount for period and customer
+      {
+        $group: {
+          _id: "$customer.customer",
+          total: { $sum: "$amount.totalamount" },
+        },
+      },
+      //third stage - get sum & count of amount for period
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$total" },
+          customers: { $sum: 1 },
+        },
+      },
     ]);
     res.json({data:gmvData})
   } catch (error) {
@@ -70,6 +89,16 @@ async function getGmvdata(req, res){
 async function getGmvTimeSeries(req, res){
   try {
     monthGmv = await orderModel.aggregate([
+      // First Stage - match based on query params
+      // {
+      //   $match: {
+      //     date: {
+      //       $gte: new ISODate("2014-01-01"),
+      //       $lt: new ISODate("2015-01-01"),
+      //     },
+      //   },
+      // },
+      // Second Stage - Group based on created at
       {
         $group: {
           _id: {
@@ -82,6 +111,7 @@ async function getGmvTimeSeries(req, res){
           total: { $sum: "$amount.totalamount" },
         },
       },
+      // Third Stage - Sort by _id (created at)
       {
         $sort: { _id: 1 },
       },

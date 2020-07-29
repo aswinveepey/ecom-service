@@ -13,7 +13,6 @@ const cartSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Sku",
         required: true,
-        unique:true
       },
       quantity: {
         type: mongoose.Schema.Types.Number,
@@ -37,6 +36,8 @@ const cartSchema = mongoose.Schema({
     default: Date.now,
   },
 });
+
+cartSchema.index({customer:1, "cartitems.sku":1},{unique:true})
 
 const cartModel = mongoose.model("Cart", cartSchema);
 

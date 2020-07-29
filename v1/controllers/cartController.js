@@ -32,7 +32,7 @@ async function addtoCart(req, res) {
     //validate customer
     if(!customer) throw new Erorr("Customer Not Found");
     //validate SKU
-    if (!mongoose.Types.ObjectId.isValid(sku)) throw new Erorr("Invalid SKU ID provided")
+    if (!mongoose.Types.ObjectId.isValid(sku)) throw new Error("Invalid SKU ID provided")
     
     //fetch sku data
     skuData = await skuModel.findOne({ _id: sku, status: true });
@@ -48,13 +48,13 @@ async function addtoCart(req, res) {
       { customer: customer._id },
       {
         $set: { customer: customer._id },
-        $pull: { cartitems: { sku: skuData } },
+        $pull: { cartitems: { sku: skuData._id } },
       },
       { upsert: true, new: true }
     );
-    cart.cartitems.push({ sku: skuData, quantity: quantity });
-    cart.save();
-    return res.json({ data: cart });
+    cart.cartitems.push({ sku: skuData._id, quantity: quantity });
+    await cart.save();
+    return res.json({ data: cart, message:"Cart item added succesfully" });
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: error.message });
@@ -170,7 +170,7 @@ async function checkout(req, res) {
       cart.save();
     }
     order = await order.calculateTotals();
-    return res.json({ data: order });
+    return res.json({ data: order, message:"Succesfully Placed the order" });
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: error.message });
