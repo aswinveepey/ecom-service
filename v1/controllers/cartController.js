@@ -30,7 +30,7 @@ async function addtoCart(req, res) {
     var { sku, quantity } = req.body;
     
     //validate customer
-    if(!customer) throw new Erorr("Customer Not Found");
+    if(!customer) throw new Error("Customer Not Found");
     //validate SKU
     if (!mongoose.Types.ObjectId.isValid(sku)) throw new Error("Invalid SKU ID provided")
     
