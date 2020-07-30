@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const orderModel = require("../models/order");
-const customerModel = require("../models/customer");
 const cartModel = require("../models/cart");
 const skuModel = require("../models/sku");
 const skuRules = require("../services/orderValidations")

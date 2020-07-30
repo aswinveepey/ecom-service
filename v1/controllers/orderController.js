@@ -8,20 +8,57 @@ const territoryMappingService = require("../services/territoryMappingService");
 async function getAllOrders(req, res) {
   //diff between user & customer
   try {
-    orders = await orderModel
-      .find()
-      .sort({ createdat: -1 })
-      .populate({ path: "orderitems.sku.product", select: "name" })
-      .populate({
-        path: "customer.customer.auth",
-        select: "email mobilenumber",
-      })
-      .populate({
-        path: "customer.customer.account",
-        select: "name",
-      })
-      .lean()
-      .limit(250);
+    const { startDate, endDate } = req.query;
+    let matchQuery = {};
+    if(startDate && endDate){
+      matchQuery = {
+        createdat: { $gte: new Date(startDate), $lte: new Date(endDate) },
+      };
+    }
+    orders = await orderModel.aggregate([
+      //stage 1 - filter using query filters
+      {
+        $match: matchQuery,
+      },
+      //stage 2 - populate auth information
+      {
+        $lookup: {
+          from: "auths",
+          localField: "customer.customer.auth",
+          foreignField: "_id",
+          as: "customer.customer.auth",
+        },
+      },
+      //stage 3 - unqind auth
+      { $unwind: "$customer.customer.auth" },
+      //stage 4 unqind order items - pre populate
+      { $unwind: "$orderitems" },
+      //stage 5 populate product information
+      {
+        $lookup: {
+          from: "products",
+          localField: "orderitems.sku.product",
+          foreignField: "_id",
+          as: "orderitems.sku.product",
+        },
+      },
+      //stage 5 unwind product information
+      { $unwind: "$orderitems.sku.product" },
+      //stage 6 - group items by order id
+      {
+        $group: {
+          _id: "$_id",
+          shortid: { $first: "$shortid" },
+          customer: { $first: "$customer" },
+          amount: { $first: "$amount" },
+          createdat: { $first: "$createdat" },
+          orderitems: { $push: "$orderitems" },
+          payment: { $push: "$payment" },
+        },
+      },
+      { $limit: 100 },
+    ]);
+    //return orders
     return res.json({ data: orders });
   } catch (error) {
     return res.status(400).json({ message: error.message });
