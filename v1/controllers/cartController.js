@@ -14,7 +14,7 @@ async function getSelfCart(req, res) {
     !customer && res.status(400).json({ message: "Customer Not Found" });
     cart = await cartModel
       .findOne({ customer: customer._id })
-      .populate("cartitems.sku")
+      // .populate("cartitems.sku")
       .lean();
     return res.json({ data: cart });
   } catch (error) {
