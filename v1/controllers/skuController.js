@@ -81,13 +81,13 @@ async function getAllSkus(req, res) {
       { $unwind: "$inventory" }, //look up returns array - convert to object
       {
         $match: {
-          $and: [filterQuery, territoryQuery], //returns colleciton based on queries - does not filter the inventory
+          $and: [filterQuery, territoryQuery, { "inventory.status": true }], //returns colleciton based on queries - does not filter the inventory
         },
       },
       {
         $project: unselectQuery, //hide purchase prices for customer
       },
-      {$group:groupQuery},
+      { $group: groupQuery },
       { $limit: 100 },
     ]);
 
@@ -141,13 +141,17 @@ async function getOneSku(req, res) {
     if(req.customer){
 
       skus = await skuModel.aggregate([
+        { $unwind: "$inventory" },
         {
           $match: {
             //returns colleciton based on queries - does not filter the inventory
-            $and: [{ _id: mongoose.Types.ObjectId(skuId) }, territoryQuery],
+            $and: [
+              { _id: mongoose.Types.ObjectId(skuId) },
+              territoryQuery,
+              { "inventory.status": true },
+            ],
           },
         },
-        { $unwind: "$inventory" },
         {
           $lookup: {
             from: "products",
