@@ -4,6 +4,7 @@ const cartModel = require("../models/cart");
 const skuModel = require("../models/sku");
 const skuRules = require("../services/orderValidations")
 const territoryMappingService = require("../services/territoryMappingService")
+const inventoryService = require("../services/inventoryService");
 
 // add items to cart
 // create cart if not exists
@@ -63,7 +64,7 @@ async function addtoCart(req, res) {
 async function checkout(req, res) {
   try {
     auth = req.auth._id;
-    var {customer} = req.body
+
     let amount = {
       amount: 0,
       discount: 0,
@@ -80,7 +81,7 @@ async function checkout(req, res) {
     !currentCustomer && res.status(400).json({ message: "Customer Not Found" });
     
     //assign customer to customer.customer
-    customer = customer || {}; //if not passed through request body
+    customer = {}; //if not passed through request body
     customer.customer = currentCustomer;
     customer.deliveryaddress = customer.deliveryaddress || currentCustomer.address[currentCustomer.currentaddressindex];
     customer.billingaddress = customer.billingaddress || currentCustomer.address[currentCustomer.currentaddressindex];
@@ -95,12 +96,14 @@ async function checkout(req, res) {
     if (territoriesArray.length > 0) {
       territoryQuery = { "inventory.territory": { $in: territoriesArray } };
     }
-    
+    console.log(customer);
     cart = await cartModel
-        .findOne({ "customer._id": customer._id })
-        .populate("customer")
-        .populate("cartitems.sku");
-    
+      .findOne({
+        "customer": mongoose.Types.ObjectId(customer.customer._id),
+      })
+      .populate("customer")
+      .populate("cartitems.sku");
+    console.log(cart)
         //ensure order items include atleast 1 sku
     if (cart.cartitems.length === 0) {
       return res.status(400).json({ message: "No items in cart" });
@@ -120,6 +123,7 @@ async function checkout(req, res) {
               $and: [
                 { _id: mongoose.Types.ObjectId(item.sku._id) },
                 territoryQuery,
+                { "inventory.status": true },
               ],
             },
           },
@@ -143,14 +147,20 @@ async function checkout(req, res) {
         }
         //assign sku to order item
         orderitem.sku = sku;
-        orderitem.selectedInventoryIndex = 0;
         orderitem.quantity = {};
         orderitem.quantity.booked = item.quantity;
         //capture territory information
         orderitem.quantity.territory = sku.inventory[0].territory;
         //set default status
         orderitem.status = "Booked";
+        console.log(orderitem);
         orderitems.push(orderitem);
+        //reduce inventory
+        await inventoryService.reduceInventory(
+          sku,
+          orderitem.quantity.territory,
+          orderitem.quantity.booked
+        );
       })
     );
     order = await orderModel
@@ -164,7 +174,7 @@ async function checkout(req, res) {
         console.log(err);
         return res.status(400).json({ message: err.message });
       });
-    if (order) {
+    if(order){
       cart.cartitems = [];
       cart.save();
     }

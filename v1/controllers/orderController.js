@@ -4,6 +4,7 @@ const customerModel = require("../models/customer");
 const skuModel = require("../models/sku");
 const skuRules = require("../services/orderValidations");
 const territoryMappingService = require("../services/territoryMappingService");
+const inventoryService = require("../services/inventoryService");
 
 async function getAllOrders(req, res) {
   //diff between user & customer
@@ -31,9 +32,25 @@ async function getAllOrders(req, res) {
       },
       //stage 3 - unqind auth
       { $unwind: "$customer.customer.auth" },
-      //stage 4 unqind order items - pre populate
+      //stage 3 - populate account information
+      {
+        $lookup: {
+          from: "accounts",
+          localField: "customer.customer.account",
+          foreignField: "_id",
+          as: "customer.customer.account",
+        },
+      },
+      //stage 4 - unqind auth
+      {
+        $unwind: {
+          path: "$customer.customer.account",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      //stage 5 unqind order items - pre populate
       { $unwind: "$orderitems" },
-      //stage 5 populate product information
+      //stage 6 populate product information
       {
         $lookup: {
           from: "products",
@@ -42,9 +59,9 @@ async function getAllOrders(req, res) {
           as: "orderitems.sku.product",
         },
       },
-      //stage 5 unwind product information
+      //stage 7 unwind product information
       { $unwind: "$orderitems.sku.product" },
-      //stage 6 - group items by order id
+      //stage 8 - group items by order id
       {
         $group: {
           _id: "$_id",
@@ -162,7 +179,6 @@ async function createOrder(req, res) {
           },
         ]);
         //an array is returned so get the first object in array
-        console.log(skus[0]);
         sku = skus[0];
         //if invalid sku return error
         if (!sku) {
@@ -173,7 +189,7 @@ async function createOrder(req, res) {
         //assign sku from query
         item.sku = sku;
         //get inventory based on customer territory - TODO
-        item.selectedInventoryIndex = 0;
+        item.selectedInventoryImdex = 0;
         //Quantity Rule Validations
         await skuRules.validateSkuQuantityRules(sku, item.quantity.booked);
         //min qty rule
@@ -184,22 +200,26 @@ async function createOrder(req, res) {
         }
         //Inventory Operations
         //check if inventory for particular sku exists
-        if (!sku.inventory[item.selectedInventoryIndex]) {
+        if (!sku.inventory[0]) {
           throw new Error("No inventory for selected sku");
         }
         //check if inventory gte booked qty
         if (
-          !sku.inventory[item.selectedInventoryIndex] >= item.quantity.booked
+          !sku.inventory[0] >= item.quantity.booked
         ) {
           throw new Error("OOS for selected territory");
         }
-
         //capture territory information
         item.quantity.territory =
-          sku.inventory[item.selectedInventoryIndex].territory;
-
+          sku.inventory[0].territory;
         //set default status
         item.status = "Booked";
+        //reduce inventory
+        await inventoryService.reduceInventory(
+          sku,
+          item.quantity.territory,
+          item.quantity.booked
+        );
       })
     );
     order = await orderModel
@@ -271,7 +291,7 @@ async function updateOrder(req, res) {
     order.amount.installation = amount.installation;
     order.amount.shipping = amount.shipping;
 
-    order.payment = payment;
+    // order.payment = payment;
     //save order & return
     await order.save();
     //calculate totals

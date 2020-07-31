@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const customerSchema = require("mongoose").model("Customer").schema;
-const skuSchema = require("mongoose").model("Sku").schema;
 const shortid = require("shortid");
 const Double = require("@mongoosejs/double");
 
@@ -53,8 +51,38 @@ const orderSchema = mongoose.Schema({
   },
   customer: {
     customer: {
-      type: customerSchema,
-      required: true,
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+      },
+      firstname: {
+        type: String,
+        required: true,
+      },
+      lastname: {
+        type: String,
+      },
+      type: {
+        type: String,
+        required: true,
+      },
+      gender: {
+        type: String,
+      },
+      birthday: {
+        type: Date,
+      },
+      contactnumber: {
+        type: String,
+      },
+      auth: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Auth",
+        required: true,
+      },
+      account: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Account",
+      },
     },
     deliveryaddress: {
       type: addressSchema,
@@ -72,10 +100,149 @@ const orderSchema = mongoose.Schema({
         unique: true,
         default: shortid.generate,
       },
-      sku: skuSchema,
-      selectedInventoryIndex: {
-        type: mongoose.Schema.Types.Number,
-        required: true,
+      sku: {
+        _id: {
+          type: mongoose.Schema.Types.ObjectId,
+        },
+        shortid: {
+          type: String,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        inventory: [
+          {
+            territory: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "Territory",
+              required: true,
+            },
+            quantity: {
+              type: mongoose.Schema.Types.Number,
+              required: true,
+            },
+            mrp: {
+              type: Double,
+              required: true,
+            },
+            discount: {
+              type: Double,
+              required: true,
+              default: 0,
+            },
+            sellingprice: {
+              type: Double,
+              required: true,
+            },
+            purchaseprice: {
+              type: Double,
+              required: true,
+            },
+            shippingcharges: {
+              type: Double,
+              required: true,
+            },
+            installationcharges: {
+              type: Double,
+              required: true,
+            },
+            status: {
+              type: Boolean,
+              required: true,
+            },
+          },
+        ],
+        assets: {
+          imgs: [
+            {
+              type: String,
+            },
+          ],
+          thumbnail: {
+            type: String,
+          },
+        },
+        attributes: [
+          {
+            name: {
+              type: String,
+            },
+            value: {
+              type: String,
+            },
+          },
+        ],
+        dattributes: [
+          {
+            name: {
+              type: String,
+            },
+            value: {
+              type: String,
+            },
+          },
+        ],
+        price: {
+          mrp: {
+            type: Double,
+            required: true,
+          },
+          discount: {
+            type: Double,
+            required: true,
+          },
+          sellingprice: {
+            type: Double,
+            required: true,
+          },
+          purchaseprice: {
+            type: Double,
+            required: true,
+          },
+          shippingcharges: {
+            type: Double,
+            required: true,
+          },
+          installationcharges: {
+            type: Double,
+            required: true,
+          },
+        },
+        bulkdiscount: {
+          threshold: {
+            type: mongoose.Schema.Types.Number,
+            required: true,
+          },
+          discount: {
+            type: Double,
+            required: true,
+          },
+        },
+        quantityrules: {
+          minorderqty: {
+            type: mongoose.Schema.Types.Number,
+            required: true,
+          },
+          minorderqtystep: {
+            type: Boolean,
+            required: true,
+          },
+          maxorderqty: {
+            type: mongoose.Schema.Types.Number,
+            required: true,
+          },
+        },
+        status: {
+          type: Boolean,
+          required: true,
+        },
       },
       quantity: {
         booked: {
@@ -210,25 +377,25 @@ orderSchema.methods.calculateTotals = async function () {
     .filter((item) => item.status !== "Cancelled")
     .map((item) => {
       itemamount =
-        item.sku.inventory[item.selectedInventoryIndex].sellingprice *
+        item.sku.inventory[0].sellingprice *
         (item.quantity.delivered ||
           item.quantity.shipped ||
           item.quantity.confirmed ||
           item.quantity.booked);
       itemdiscount =
-        item.sku.inventory[item.selectedInventoryIndex].discount *
+        item.sku.inventory[0].discount *
         (item.quantity.delivered ||
           item.quantity.shipped ||
           item.quantity.confirmed ||
           item.quantity.booked);
       itemtotalamount = itemdiscount ? itemamount - itemdiscount : itemamount;
       itemshipping =
-        item.sku.inventory[item.selectedInventoryIndex].shippingcharges *
+        item.sku.inventory[0].shippingcharges *
         (item.quantity.shipped ||
           item.quantity.confirmed ||
           item.quantity.booked);
       iteminstallation =
-        item.sku.inventory[item.selectedInventoryIndex].installationcharges *
+        item.sku.inventory[0].installationcharges *
         (item.quantity.delivered ||
           item.quantity.shipped ||
           item.quantity.confirmed ||

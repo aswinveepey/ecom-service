@@ -37,7 +37,6 @@ const customerSchema = mongoose.Schema({
         name: {
           type: String,
           required: true,
-          unique: true,
         },
         address1: {
           type: String,
