@@ -38,9 +38,6 @@ async function getAllSkus(req, res) {
     //map territories obj array to string array
     territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
 
-    //validate Filter Value
-    if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
-      res.status(400).json({ message: "Invalid ID passed as filter value" });
     
     if (req.customer){
       unselectQuery = {
@@ -57,13 +54,22 @@ async function getAllSkus(req, res) {
     //based on filter conditions update query
     if (filterBy && filterValue) {
       if (filterBy.toLowerCase()==="category"){
+        if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
+          throw new Error("Invalid Category ID passed as filter value");
         filterQuery = {
           "product.category": mongoose.Types.ObjectId(filterValue),
         };
       } else if (filterBy.toLowerCase()==="brand"){
+        if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
+          throw new Error("Invalid Brand ID passed as filter value");
         filterQuery = {
           "product.brand": mongoose.Types.ObjectId(filterValue),
         };
+      } else if (filterBy.toLowerCase()==="attributes"){
+        filterQuery = {
+          "product.attributes.value": {$in:filterValue.split(",")},
+        };
+        console.log(filterQuery);
       }
     }
     
@@ -77,8 +83,9 @@ async function getAllSkus(req, res) {
           as: "product",
         },
       },
-      { $unwind: "$product" }, //look up returns array - convert to object
-      { $unwind: "$inventory" }, //look up returns array - convert to object
+      { $unwind: "$product" }, //product array to object
+      { $unwind: "$inventory" }, //inventory array to object
+      // { $unwind: "$attributes" }, //attribues array to object
       {
         $match: {
           $and: [filterQuery, territoryQuery, { "inventory.status": true }], //returns colleciton based on queries - does not filter the inventory
@@ -88,7 +95,7 @@ async function getAllSkus(req, res) {
         $project: unselectQuery, //hide purchase prices for customer
       },
       { $group: groupQuery },
-      { $limit: 100 },
+      { $limit: 50 },
     ]);
 
     //return query results
