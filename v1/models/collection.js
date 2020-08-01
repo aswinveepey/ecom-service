@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
+const shortid = require("shortid");
 
 const collectionSchema = mongoose.Schema({
+  shortid: {
+    type: String,
+    unique: true,
+    default: shortid.generate,
+  },
   name: {
     type: String,
     required: true,

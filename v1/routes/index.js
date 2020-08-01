@@ -18,6 +18,7 @@ const { assetRouter } = require("./assetRoutes");
 const { orderRouter } = require("./orderRoutes");
 const { cartRouter } = require("./cartRoutes");
 const { dataRouter } = require("./dataRoutes");
+const { collectionRouter } = require("./collectionRoutes");
 const {auth} = require('../middlewares/auth')
 const {customer} = require('../middlewares/customer')
 const {territory} = require('../middlewares/territory')
@@ -39,6 +40,7 @@ routes.use("/sku", auth, customer,territory, skuRouter);
 routes.use("/asset", auth, assetRouter);
 routes.use("/order", auth, customer,territory, orderRouter);
 routes.use("/cart", auth, customer,territory, cartRouter);
+routes.use("/collection", auth, customer, territory, collectionRouter);
 routes.use("/data", auth, dataRouter);
 //Swagger
 /**

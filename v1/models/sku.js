@@ -191,25 +191,6 @@ skuSchema.index(
   }
 );
 
-skuSchema.index(
-  {
-    "attributes.name": 1,
-    "attributes.value": 1,
-  },
-  {
-    name: "sku_attribute_index",
-  }
-);
-
-skuSchema.index(
-  {
-    "inventory.territory": 1,
-  },
-  {
-    name: "sku_territory_index",
-  }
-);
-
 const skuModel = mongoose.model("Sku", skuSchema);
 
 module.exports = skuModel;
