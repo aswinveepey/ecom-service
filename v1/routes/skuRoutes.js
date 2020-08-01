@@ -3,7 +3,7 @@ const skuRouter = express.Router();
 const skuController = require("../controllers/skuController");
 const { user } = require("../middlewares/user");
 
-skuRouter.get("/", skuController.getAllSkus);
+skuRouter.get("/", skuController.getSkus);
 skuRouter.get("/id/:skuId", skuController.getOneSku);
 skuRouter.post("/", user, skuController.createSku);
 skuRouter.post("/id/:skuId", user, skuController.updateSku);

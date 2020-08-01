@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 const skuModel = require("../models/sku");
 const productModel = require("../models/product");
+const skuService = require("../services/skuService")
 
 // Get all skus for listing skus, limited to a 100 records. Filterable using filterparms
 // filterby - supports category, & brand
 //filtervalue - supports ID fields
-async function getAllSkus(req, res) {
+async function getSkus(req, res) {
   try {
     //get query params
     const { filterBy, filterValue } = req.query;
@@ -52,24 +53,35 @@ async function getAllSkus(req, res) {
     }
 
     //based on filter conditions update query
-    if (filterBy && filterValue) {
+    if (filterBy) {
+      //category filter
       if (filterBy.toLowerCase()==="category"){
         if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
           throw new Error("Invalid Category ID passed as filter value");
         filterQuery = {
           "product.category": mongoose.Types.ObjectId(filterValue),
         };
+        //brand filter
       } else if (filterBy.toLowerCase()==="brand"){
         if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
           throw new Error("Invalid Brand ID passed as filter value");
         filterQuery = {
           "product.brand": mongoose.Types.ObjectId(filterValue),
         };
+        //attribute filter
       } else if (filterBy.toLowerCase()==="attributes"){
+        if (!filterValue)
+          throw new Error("Invalid attribute value");
         filterQuery = {
-          "product.attributes.value": {$in:filterValue.split(",")},
+          "product.attributes.value": { $in: filterValue?.split(",") },
         };
-        console.log(filterQuery);
+        //top products filter
+      } else if (filterBy.toLowerCase()==="top"){
+        const topSkus = await skuService.getTopOrderedSkus();
+        // get top skus by ID
+        filterQuery = {
+          _id: { $in: topSkus },
+        };
       }
     }
     
@@ -85,10 +97,9 @@ async function getAllSkus(req, res) {
       },
       { $unwind: "$product" }, //product array to object
       { $unwind: "$inventory" }, //inventory array to object
-      // { $unwind: "$attributes" }, //attribues array to object
       {
         $match: {
-          $and: [filterQuery, territoryQuery, { "inventory.status": true }], //returns colleciton based on queries - does not filter the inventory
+          $and: [filterQuery, territoryQuery, { "inventory.status": true }], //returns colleciton based on queries
         },
       },
       {
@@ -102,7 +113,7 @@ async function getAllSkus(req, res) {
     return res.json({ data: skus });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ message: error.message });
   }
 }
 
@@ -323,7 +334,7 @@ async function searchSku(req, res) {
 }
 
 module.exports = {
-  getAllSkus,
+  getSkus,
   createSku,
   getOneSku,
   updateSku,
