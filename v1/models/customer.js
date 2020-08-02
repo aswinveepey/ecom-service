@@ -1,6 +1,13 @@
 const mongoose = require("mongoose");
+const shortid = require("shortid");
 
 const customerSchema = mongoose.Schema({
+  shortid: {
+    type: String,
+    unique: true,
+    required:true,
+    default: shortid.generate,
+  },
   firstname: {
     type: String,
     required: true,

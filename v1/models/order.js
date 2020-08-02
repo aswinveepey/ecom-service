@@ -53,6 +53,10 @@ const orderSchema = mongoose.Schema({
     customer: {
       _id: {
         type: mongoose.Schema.Types.ObjectId,
+        required:true
+      },
+      shortid: {
+        type: mongoose.Schema.Types.ObjectId,
       },
       firstname: {
         type: String,
