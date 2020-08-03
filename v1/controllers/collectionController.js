@@ -1,6 +1,5 @@
 const collectionModel = require("../models/collection");
 const mongoose = require("mongoose");
-const { collection } = require("../models/collection");
 
 async function getCollections(req, res) {
   const collections = await collectionModel.find().lean();
@@ -58,16 +57,12 @@ async function updateCollection(req, res) {
           startdate: startdate,
           enddate: enddate,
           status: status,
-          items:[],
           updatedat: Date.now(),
-        }
+        },
+        $addToSet: {
+          items: items,
+        },
       },
-      { new: true, upsert: true }
-    );
-    collection = await collection.update(
-      {$addToSet: {
-        items: items,
-      }},
       { new: true, upsert: true }
     );
     res.json({ data:collection, message: "Collection Updated Succesfully" });
