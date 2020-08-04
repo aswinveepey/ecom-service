@@ -12,7 +12,7 @@ const inventoryService = require("../services/inventoryService");
 async function getSelfCart(req, res) {
   try {
     customer = req.customer;
-    !customer && res.status(400).json({ message: "Customer Not Found" });
+    if(!customer) throw new Error("Customer Not Found");
     cart = await cartModel
       .findOne({ customer: customer._id })
       // .populate("cartitems.sku")
@@ -20,7 +20,7 @@ async function getSelfCart(req, res) {
     return res.json({ data: cart });
   } catch (error) {
     console.log(error);
-    res.status(400).json({ message: error.message });
+    return res.status(400).json({ message: error.message });
   }
 }
 
@@ -57,7 +57,7 @@ async function addtoCart(req, res) {
     return res.json({ data: cart, message:"Cart item added succesfully" });
   } catch (error) {
     console.log(error);
-    res.status(400).json({ message: error.message });
+    return res.status(400).json({ message: error.message });
   }
 }
 
@@ -78,7 +78,7 @@ async function checkout(req, res) {
     let territoryQuery = {};
     
     currentCustomer = req.customer;
-    !currentCustomer && res.status(400).json({ message: "Customer Not Found" });
+    if(!currentCustomer) throw new Error("Customer Not Found");
     
     //assign customer to customer.customer
     customer = {}; //if not passed through request body
@@ -103,10 +103,9 @@ async function checkout(req, res) {
       })
       .populate("customer")
       .populate("cartitems.sku");
-    console.log(cart)
-        //ensure order items include atleast 1 sku
+    //ensure order items include atleast 1 sku
     if (cart.cartitems.length === 0) {
-      return res.status(400).json({ message: "No items in cart" });
+      throw new Error("No items in cart");
     }
     //loop through order items and perform operations
     await Promise.all(
@@ -153,7 +152,6 @@ async function checkout(req, res) {
         orderitem.quantity.territory = sku.inventory[0].territory;
         //set default status
         orderitem.status = "Booked";
-        console.log(orderitem);
         orderitems.push(orderitem);
         //reduce inventory
         await inventoryService.reduceInventory(
@@ -182,7 +180,7 @@ async function checkout(req, res) {
     return res.json({ data: order, message:"Succesfully Placed the order" });
   } catch (error) {
     console.log(error);
-    res.status(400).json({ message: error.message });
+    return res.status(400).json({ message: error.message });
   }
 }
 

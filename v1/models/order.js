@@ -56,7 +56,7 @@ const orderSchema = mongoose.Schema({
         required:true
       },
       shortid: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
       },
       firstname: {
         type: String,

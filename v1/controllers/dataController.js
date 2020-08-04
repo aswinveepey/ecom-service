@@ -27,7 +27,7 @@ async function getCustomerCount(req, res){
     res.json({ data: customerData });
   } catch (error) {
     console.log(error)
-    res.status(400).json({message:error})
+    res.status(400).json({message:error.message})
   }
 }
 
@@ -82,7 +82,7 @@ async function getGmvdata(req, res){
     res.json({data:gmvData})
   } catch (error) {
     console.log(error)
-    res.status(400).json({message:error})
+    res.status(400).json({message:error.message})
   }
 }
 
@@ -119,7 +119,53 @@ async function getGmvTimeSeries(req, res){
     res.json({data:monthGmv})
   } catch (error) {
     console.log(error)
-    res.status(400).json({message:error})
+    res.status(400).json({message:error.message})
+  }
+}
+async function orderItemDataDump(req, res){
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const orderitems = await orderModel.aggregate([
+      { $match: { createdat: { $gte: startDate, $lte: endDate } } },
+      { $unwind: "$orderitems" },
+      {$project:{
+        _id:0,
+        "orderid":"$shortid",
+        "orderitemid":"$orderitems.shortid",
+        "customerid":"$customer.customer.shortid",
+        "customername":"$customer.customer.firstname",
+        "skuid":"$orderitems.sku.shortid",
+        "skuname":"$orderitems.sku.name",
+        "mrp":"$orderitems.sku.price.mrp",
+        "discount":"$orderitems.sku.price.discount",
+        "sellingprice":"$orderitems.sku.price.sellingprice",
+        "purchaseprice":"$orderitems.sku.price.purchaseprice",
+        "shippingcharges":"$orderitems.sku.price.shippingcharges",
+        "installationcharges":"$orderitems.sku.price.installationcharges",
+        "bulkthreshold":"$orderitems.sku.bulkdiscount.threshold",
+        "bulkdiscount":"$orderitems.sku.bulkdiscount.discount",
+        "minorderqty":"$orderitems.sku.quantityrules.minorderqty",
+        "minorderqtymultiples":"$orderitems.sku.quantityrules.minorderqtystep",
+        "maxorderqty":"$orderitems.sku.quantityrules.maxorderqty",
+        "quantitybooked":"$orderitems.quantity.booked",
+        "quantityconfirmed":"$orderitems.quantity.confirmed",
+        "quantityshipped":"$orderitems.quantity.shipped",
+        "quantitydelivered":"$orderitems.quantity.delivered",
+        "quantityreturned":"$orderitems.quantity.returned",
+        "amount":"$orderitems.amount.amount",
+        "discount":"$orderitems.amount.discount",
+        "totalamount":"$orderitems.amount.totalamount",
+        "status":"$orderitems.status",
+        "orderdate":"$orderitems.orderdate"
+      }}
+    ]);
+    res.json({data:orderitems})
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({message:error.message})
   }
 }
 
@@ -127,4 +173,5 @@ module.exports = {
   getCustomerCount,
   getGmvdata,
   getGmvTimeSeries,
+  orderItemDataDump,
 };

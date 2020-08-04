@@ -252,7 +252,7 @@ async function updateOrder(req, res) {
 
     //validate order id and order
     if (!mongoose.Types.ObjectId.isValid(_id))
-      res.status(400).json({ message: "Invalid Order ID" });
+      throw new Error("Invalid Order ID");
     order = await orderModel
       .findById(_id)
       .populate("customer")
