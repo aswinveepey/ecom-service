@@ -131,38 +131,114 @@ async function orderItemDataDump(req, res){
     const orderitems = await orderModel.aggregate([
       { $match: { createdat: { $gte: startDate, $lte: endDate } } },
       { $unwind: "$orderitems" },
-      {$project:{
-        _id:0,
-        "orderid":"$shortid",
-        "orderitemid":"$orderitems.shortid",
-        "customerid":"$customer.customer.shortid",
-        "customername":"$customer.customer.firstname",
-        "skuid":"$orderitems.sku.shortid",
-        "skuname":"$orderitems.sku.name",
-        "mrp":"$orderitems.sku.price.mrp",
-        "discount":"$orderitems.sku.price.discount",
-        "sellingprice":"$orderitems.sku.price.sellingprice",
-        "purchaseprice":"$orderitems.sku.price.purchaseprice",
-        "shippingcharges":"$orderitems.sku.price.shippingcharges",
-        "installationcharges":"$orderitems.sku.price.installationcharges",
-        "bulkthreshold":"$orderitems.sku.bulkdiscount.threshold",
-        "bulkdiscount":"$orderitems.sku.bulkdiscount.discount",
-        "minorderqty":"$orderitems.sku.quantityrules.minorderqty",
-        "minorderqtymultiples":"$orderitems.sku.quantityrules.minorderqtystep",
-        "maxorderqty":"$orderitems.sku.quantityrules.maxorderqty",
-        "quantitybooked":"$orderitems.quantity.booked",
-        "quantityconfirmed":"$orderitems.quantity.confirmed",
-        "quantityshipped":"$orderitems.quantity.shipped",
-        "quantitydelivered":"$orderitems.quantity.delivered",
-        "quantityreturned":"$orderitems.quantity.returned",
-        "amount":"$orderitems.amount.amount",
-        "discount":"$orderitems.amount.discount",
-        "totalamount":"$orderitems.amount.totalamount",
-        "status":"$orderitems.status",
-        "orderdate":"$orderitems.orderdate"
-      }}
+      {
+        $lookup: {
+          from: "products",
+          localField: "orderitems.sku.product",
+          foreignField: "_id",
+          as: "orderitems.sku.product",
+        },
+      },
+      { $unwind: "$orderitems.sku.product" },
+      {
+        $project: {
+          _id: 0,
+          orderid: "$shortid",
+          orderitemid: "$orderitems.shortid",
+          customerid: "$customer.customer.shortid",
+          customername: {
+            $concat: [
+              "$customer.customer.firstname",
+              " ",
+              "$customer.customer.lastname",
+            ],
+          },
+          skuid: "$orderitems.sku.shortid",
+          skuname: {
+            $concat: [
+              "$orderitems.sku.product.name",
+              " - ",
+              "$orderitems.sku.name",
+            ],
+          },
+          categoryid: "$orderitems.sku.product.category",
+          brandid: "$orderitems.sku.product.brand",
+          mrp: "$orderitems.sku.price.mrp",
+          discount: "$orderitems.sku.price.discount",
+          sellingprice: "$orderitems.sku.price.sellingprice",
+          purchaseprice: "$orderitems.sku.price.purchaseprice",
+          shippingcharges: "$orderitems.sku.price.shippingcharges",
+          installationcharges: "$orderitems.sku.price.installationcharges",
+          bulkthreshold: "$orderitems.sku.bulkdiscount.threshold",
+          bulkdiscount: "$orderitems.sku.bulkdiscount.discount",
+          minorderqty: "$orderitems.sku.quantityrules.minorderqty",
+          minorderqtymultiples: "$orderitems.sku.quantityrules.minorderqtystep",
+          maxorderqty: "$orderitems.sku.quantityrules.maxorderqty",
+          quantitybooked: "$orderitems.quantity.booked",
+          quantityconfirmed: "$orderitems.quantity.confirmed",
+          quantityshipped: "$orderitems.quantity.shipped",
+          quantitydelivered: "$orderitems.quantity.delivered",
+          quantityreturned: "$orderitems.quantity.returned",
+          territoryid: "$orderitems.quantity.territory",
+          amount: "$orderitems.amount.amount",
+          discount: "$orderitems.amount.discount",
+          totalamount: "$orderitems.amount.totalamount",
+          status: "$orderitems.status",
+          orderdate: "$orderitems.orderdate",
+        },
+      },
     ]);
+    console.log(orderitems);
     res.json({data:orderitems})
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({message:error.message})
+  }
+}
+async function customerDataDump(req, res){
+  try {
+    const customers = await customerModel.aggregate([
+      {
+        $lookup: {
+          from: "auths",
+          localField: "auth",
+          foreignField: "_id",
+          as: "auth",
+        },
+      },
+      { $unwind: "$auth" },
+      {
+        $lookup: {
+          from: "accounts",
+          localField: "account",
+          foreignField: "_id",
+          as: "account",
+        },
+      },
+      { $unwind: "$account" },
+      {
+        $project: {
+          _id: 0,
+          customerid: "shortid",
+          accountid: "$account._id",
+          firstname: "$firstname",
+          lastname: "$lastname",
+          accountname: "$account.name",
+          username: "$auth.username",
+          email: "$auth.email",
+          mobilenumber: "$auth.mobilenumber",
+          type: "$type",
+          gender: "$gender",
+          birthday: "$birthday",
+          contactnumber: "$contactnumber",
+          accounttype: "$account.type",
+          gstin: "$account.gstin",
+          status: "$auth.status",
+          createdat: "$createdat",
+        },
+      },
+    ]);
+    res.json({ data: customers });
   } catch (error) {
     console.log(error);
     res.status(400).json({message:error.message})
@@ -174,4 +250,5 @@ module.exports = {
   getGmvdata,
   getGmvTimeSeries,
   orderItemDataDump,
+  customerDataDump,
 };

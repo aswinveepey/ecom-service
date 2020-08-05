@@ -7,5 +7,6 @@ dataRouter.get("/customer", user, dataController.getCustomerCount);
 dataRouter.get("/gmvData", user, dataController.getGmvdata);
 dataRouter.get("/gmvTimeSeries", user, dataController.getGmvTimeSeries);
 dataRouter.get("/getOrderItemDump", user, dataController.orderItemDataDump);
+dataRouter.get("/getCustomerDump", user, dataController.customerDataDump);
 
 module.exports = { dataRouter };

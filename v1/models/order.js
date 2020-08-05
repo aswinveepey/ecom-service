@@ -53,7 +53,7 @@ const orderSchema = mongoose.Schema({
     customer: {
       _id: {
         type: mongoose.Schema.Types.ObjectId,
-        required:true
+        required: true,
       },
       shortid: {
         type: String,
@@ -265,6 +265,11 @@ const orderSchema = mongoose.Schema({
         returned: {
           type: mongoose.Schema.Types.Number,
         },
+        territory: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Territory",
+          required: true,
+        }
       },
       amount: {
         amount: {

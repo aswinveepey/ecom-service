@@ -9,7 +9,10 @@ if (process.env.NODE_ENV==="production"){
       socketTimeoutMS: 1000,
     })
     .then(() => console.log("MONGODB CONNECTION SUCCESFUL"))
-    .catch((err) => console.log(err));
+    .catch((err) => {
+                      console.log(err);
+                      process.exit();
+                    });
 } else {
   mongoose
     .connect(process.env.MONGODB_URL, {
@@ -20,5 +23,8 @@ if (process.env.NODE_ENV==="production"){
       socketTimeoutMS: 300000,
     })
     .then(() => console.log("MONGODB CONNECTION SUCCESFUL"))
-    .catch((err) => console.log(err));
+    .catch((err) => {
+                      console.log(err);
+                      process.exit();
+                    });
 }

@@ -78,14 +78,10 @@ async function registerCustomer(req, res) {
       .then((data) => {
         customer = data;
       })
-      .catch((err) => {
-        // console.log(err);
-        return res.status(400).json({ error: err });
-      });
     return res.json({ data: customer });
   } catch (err) {
     console.log(err);
-    return res.status(400).json({ message: err });
+    return res.status(400).json({ message: err.message });
   }
 }
 
@@ -120,10 +116,6 @@ async function selfUpdateCustomer(req, res) {
       .then((data) => {
         customer = data;
       })
-      .catch((err) => {
-        // console.log(err);
-        return res.status(400).json({ error: err });
-      });
     return res.json({ data: customer, message: "Customer Successfully Updated" });
   } catch (err) {
     console.log(err);
@@ -171,10 +163,6 @@ async function createCustomer(req, res) {
       .then((data) => {
         customer = data;
       })
-      .catch((err) => {
-        // console.log(err);
-        return res.status(400).json({ error: err })
-      });
     return res.json({ data: customer, message: "Customer Successfully Created" });
   } catch (err) {
     console.log(err);
@@ -201,11 +189,11 @@ async function updateCustomer(req, res) {
     currentaddressindex = currentaddressindex || 0;
 
     if (!mongoose.Types.ObjectId.isValid(_id)) {
-      return res.status(400).json({ message: "Invalid Customer ID" });
+      throw new Error("Invalid Customer ID");
     }
 
     if (account && !mongoose.Types.ObjectId.isValid(account._id)) {
-      return res.status(400).json({ message: "Invalid Account ID" });
+      throw new Error("Invalid Account ID");
     }
 
     customer = await customerModel.findByIdAndUpdate(
@@ -255,9 +243,6 @@ async function searchCustomer(req, res) {
       .lean()
       .limit(3)
       .exec(function (err, docs) {
-        if (err) {
-          return res.status(400).json({ message: err });
-        }
         return res.json({ data: docs });
       });
   } catch (error) {

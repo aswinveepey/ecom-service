@@ -149,7 +149,7 @@ async function checkout(req, res) {
         orderitem.quantity = {};
         orderitem.quantity.booked = item.quantity;
         //capture territory information
-        orderitem.quantity.territory = sku.inventory[0].territory;
+        orderitem.quantity.territory = mongoose.Types.ObjectId(sku.inventory[0].territory);
         //set default status
         orderitem.status = "Booked";
         orderitems.push(orderitem);
