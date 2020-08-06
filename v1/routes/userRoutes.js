@@ -5,7 +5,6 @@ const { user } = require("../middlewares/user");
 const { admin } = require("../middlewares/role");
 
 userRouter.get("/", user, userController.getAllUsers);
-userRouter.get("/dash", user, userController.getUserDash);
 userRouter.get("/nav", user, userController.getUserNav);
 userRouter.get("/id/:userId", user, userController.getOneUser);
 userRouter.get("/self", user, userController.getSelf);

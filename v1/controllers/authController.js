@@ -1,4 +1,4 @@
-const authModel = require("../models/auth");
+const Auth = require("../models/auth");
 /**
  * Create auth
  * @param {username} req
@@ -9,6 +9,10 @@ const authModel = require("../models/auth");
 async function createAuth(req, res) {
   try {
     const payload = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const authModel = await db.model("Auth");
     auth = new authModel(payload);
     await auth.save();
     token = await auth.generateAuthToken();
@@ -21,7 +25,13 @@ async function createAuth(req, res) {
 async function usernameAuth(req, res) {
   try {
     const { username, password } = req.body;
-    auth = await authModel.usernameAuth(username, password);
+    const { tenantId } = req.query;
+
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const authModel = await db.model("Auth");
+
+    auth = await authModel.usernameAuth(username, password, authModel);
     const token = await auth.generateAuthToken();
     return res.json({ data: token, message:"Authentication Succesful" });
   } catch (err) {
@@ -31,6 +41,11 @@ async function usernameAuth(req, res) {
 async function generateOtp(req, res){
   try {
     const { mobilenumber } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const authModel = await db.model("Auth");
+
     auth = await authModel.findOne({ mobilenumber: mobilenumber });
     if (!auth){
       auth = await authModel.create({
@@ -47,8 +62,13 @@ async function generateOtp(req, res){
 }
 async function otpAuth(req, res){
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const authModel = await db.model("Auth");
+    
     const { mobilenumber, otp } = req.body;
-    auth = await authModel.otpAuth(mobilenumber, otp);
+    auth = await authModel.otpAuth(mobilenumber, otp, authModel);
     const token = await auth.generateAuthToken();
     return res.json({ token: token, message: "OTP Verified" });
   } catch (err) {

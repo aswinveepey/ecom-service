@@ -1,9 +1,12 @@
-const customerModel = require("../models/customer")
-const orderModel = require("../models/order")
-const authModel = require("../models/auth")
+const Customer = require("../models/customer")
+const Order = require("../models/order")
 
 async function getCustomerCount(req, res){
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
     customerData = await customerModel.aggregate([
       //first stage join auth to get status
       {
@@ -33,7 +36,10 @@ async function getCustomerCount(req, res){
 
 async function getGmvdata(req, res){
   try {
-    const {filterBy} = req.query
+    const { filterBy, tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const orderModel = await db.model("Order");
 
     let startDate;
     let endDate;
@@ -88,6 +94,11 @@ async function getGmvdata(req, res){
 
 async function getGmvTimeSeries(req, res){
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const orderModel = await db.model("Order");
+    
     monthGmv = await orderModel.aggregate([
       // First Stage - match based on query params
       // {
@@ -124,6 +135,10 @@ async function getGmvTimeSeries(req, res){
 }
 async function orderItemDataDump(req, res){
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const orderModel = await db.model("Order");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
@@ -197,6 +212,10 @@ async function orderItemDataDump(req, res){
 }
 async function customerDataDump(req, res){
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
     const customers = await customerModel.aggregate([
       {
         $lookup: {

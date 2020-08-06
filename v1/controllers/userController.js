@@ -1,9 +1,13 @@
-const userModel = require('../models/user')
-const authModel = require('../models/auth')
+const User = require('../models/user')
+const Auth = require('../models/auth')
 const mongoose = require("mongoose");
 
 async function getAllUsers(req,res){
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const userModel = await db.model("User");
     users = await userModel
       .find()
       .populate({ path: "role", select: "name" })
@@ -21,6 +25,11 @@ async function getAllUsers(req,res){
 async function getOneUser(req,res){
   try {
     const { userId } = req.params;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const userModel = await db.model("User");
+
     user = await userModel
       .findById(userId)
       .populate({ path: "role", select: "name" })
@@ -47,6 +56,13 @@ async function createUser(req, res) {
       divisions,
       territories,
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+
+    const userModel = await db.model("User");
+    const authModel = await db.model("Auth");
+
     newauth =  await authModel.create({
       username: auth.username,
       mobilenumber: auth.mobilenumber,
@@ -92,6 +108,12 @@ async function updateUser(req,res){
       divisions,
       territories,
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const userModel = await db.model("User");
+    const authModel = await db.model("Auth");
+
     if ( !mongoose.Types.ObjectId.isValid(_id) ) {
       return res.status(400).json({ message: 'Invalid User ID' });
     }
@@ -133,8 +155,13 @@ async function updateUser(req,res){
 }
 
 async function searchUser(req, res){
-  const {searchString} = req.body;
   try {
+    const { searchString } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const userModel = await db.model("User");
+
     userModel
       // .aggregate([{ $match: { $text: { $search: searchString } } }])
       .find(
@@ -156,9 +183,6 @@ async function searchUser(req, res){
   }
 }
 
-async function getUserDash(req, res){
-  return res.json({message: 'success'})
-}
 async function getUserNav(req, res) {
   const data = [
     { nav: "/home", label: "Home", name: "home" },
@@ -195,7 +219,6 @@ module.exports = {
   getOneUser,
   updateUser,
   searchUser,
-  getUserDash,
   getUserNav,
   getSelf,
 };

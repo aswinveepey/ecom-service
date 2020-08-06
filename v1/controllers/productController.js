@@ -1,8 +1,13 @@
 const mongoose = require("mongoose");
-const productModel = require("../models/product");
+const Product = require("../models/product");
 
 async function getAllProducts(req, res) {
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const productModel = await db.model("Product");
+
     products = await productModel
       .find()
       .populate({ path: "category", select: "name" })
@@ -13,13 +18,18 @@ async function getAllProducts(req, res) {
     return res.json({ data: products });
   } catch (error) {
     console.log(error)
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function getOneProduct(req, res) {
   try {
     const { productId } = req.params;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const productModel = await db.model("Product");
+
     product = await productModel
       .findById(productId)
       .populate("category")
@@ -28,7 +38,7 @@ async function getOneProduct(req, res) {
       .lean();
     return res.json({ data: product });
   } catch (error) {
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
@@ -46,6 +56,11 @@ async function createProduct(req, res) {
       logistics,
       gst,
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const productModel = await db.model("Product");
+
     if (!mongoose.Types.ObjectId.isValid(category._id)) {
       return res.status(400).json({ message: "Invalid Category ID" });
     }
@@ -67,7 +82,7 @@ async function createProduct(req, res) {
     return res.json({ data: product, message:"Product Successfully Created" });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
@@ -86,6 +101,11 @@ async function updateProduct(req, res) {
       logistics,
       gst,
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const productModel = await db.model("Product");
+
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid Product ID" });
     }
@@ -117,29 +137,29 @@ async function updateProduct(req, res) {
     return res.json({ data: product, message: "Product Successfully Updated" });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function searchProduct(req, res) {
-  const { searchString } = req.body;
   try {
-    productModel
+    const { searchString } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const productModel = await db.model("Product");
+
+    const products = productModel
       .find({ $text: { $search: searchString } })
       .populate({ path: "category", select: "name" })
       .populate({ path: "brand", select: "name" })
       .populate("skus")
       .lean()
       .limit(3)
-      .exec(function (err, docs) {
-        if (err) {
-          return res.status(400).json({ message: err });
-        }
-        return res.json({ data: docs });
-      });
+    return res.json({data:products})
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 

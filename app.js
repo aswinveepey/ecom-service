@@ -4,12 +4,13 @@ var morgan = require("morgan");
 var bodyParser = require("body-parser");
 var cors = require("cors");
 var compression = require("compression");
+const { initClientDbConnection } = require("./v1/db/dbutil");
 
 //env config
 require("dotenv").config();
 
 //db config
-require("./v1/db/db");
+// require("./v1/db/db");
 
 //Sentry init
 Sentry.init({
@@ -53,7 +54,9 @@ app.use(bodyParser.json());
 /**
  * Add prefix version to the route
  */
-app.use("/api/v1/:tenantId", routerV1);
+app.use("/api/v1", routerV1);
+
+global.clientConnection = initClientDbConnection();
 
 app.listen(process.env.SERVICE_PORT || 3002, () =>
   console.log(`Service ready & listening at port: ` + process.env.SERVICE_PORT)

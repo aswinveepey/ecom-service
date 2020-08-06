@@ -5,14 +5,25 @@ const auth = async(req, res, next) => {
   try {
     const token = req.header("Authorization").replace("Bearer ", "");
     const data = jwt.verify(token, process.env.JWT_KEY);
-    const auth = await Auth.findOne({ _id: data._id, "token": token, "status": true });
-    if(!auth.status){
-      throw new Error();
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const authModel = await db.model("Auth");
+    const auth = await authModel.findOne({
+      _id: data._id,
+      token: token,
+      status: true,
+    });
+    if (!auth) {
+      throw new Error("Invalid Token");
+    }
+    if (!auth.status) {
+      throw new Error("User Access Revoked");
     }
     req.auth = auth;
     next();
   } catch (error) {
-    res.status(401).send({ message: "Not authorized to access this resource" });
+    res.status(401).json({ error: error.message });
   }
 }
 

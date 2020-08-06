@@ -5,6 +5,7 @@ const { user } = require("../middlewares/user");
 const { admin } = require("../middlewares/role");
 
 territoryRouter.get("/", user, territoryController.getTerritories);
+territoryRouter.get("/id/:territoryId", user, territoryController.getOneTerritory);
 territoryRouter.post("/", user, admin, territoryController.createTerritory);
 territoryRouter.post("/id/:territoryId", user, admin, territoryController.updateTerritory);
 territoryRouter.post("/search", user, territoryController.searchTerritory);

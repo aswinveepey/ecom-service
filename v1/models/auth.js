@@ -84,7 +84,7 @@ AuthScehema.methods.generateOtp = async function () {
   return otp;
 };
 
-AuthScehema.statics.usernameAuth = async (username, password) => {
+AuthScehema.statics.usernameAuth = async (username, password, authModel) => {
   // Search for a user by email and password.
   const auth = await authModel.findOne({ username });
   if (!auth) {
@@ -97,13 +97,13 @@ AuthScehema.statics.usernameAuth = async (username, password) => {
   return auth;
 };
 
-AuthScehema.statics.otpAuth = async (mobilenumber, otp) => {
+AuthScehema.statics.otpAuth = async (mobilenumber, otp, authModel) => {
   // Search for a user by email and password.
   const auth = await authModel.findOne({ mobilenumber });
   if (!auth) {
     throw new Error("Mobile Number Error");
   }
-  if (otp===auth.otp) {
+  if (otp === auth.otp) {
     return auth;
   } else {
     throw new Error("OTP Error");

@@ -2,17 +2,29 @@ const mongoose = require("mongoose");
 const divisionModel = require('../models/division')
 
 async function getDivisions(req, res){
-  const divisions = await divisionModel
-    .find()
-    .populate("categories")
-    .lean()
-    .limit(100);
-  res.json({ data: divisions });
+  try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const divModel = await db.model("Division");
+    const divisions = await divModel
+      .find()
+      .populate("categories")
+      .lean()
+      .limit(100);
+    return res.json({ data: divisions });
+  } catch (error) {
+    return res.status(400).json({error:error.message})
+  }
 }
 async function getOneDivision(req, res){
   try {
     const { divisionId } = req.params;
-    division = await divisionModel
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const divModel = await db.model("Division");
+    division = await divModel
       .findById(divisionId)
       .populate("categories")
       .lean();
@@ -25,7 +37,12 @@ async function getOneDivision(req, res){
 async function createDivision(req, res) {
   try {
     const { name, categories } = req.body;
-    division = new divisionModel({name: name});
+    const { divisionId } = req.params;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const divModel = await db.model("Division");
+    division = new divModel({ name: name });
     division.save();
     categories.forEach(category => {
       division.categories.push(category);
@@ -44,7 +61,11 @@ async function updateDivision(req, res) {
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid Division ID" });
     }
-    division = await divisionModel.findByIdAndUpdate(
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const divModel = await db.model("Division");
+    division = await divModel.findByIdAndUpdate(
       mongoose.Types.ObjectId(_id),
       {
         $set: {
@@ -64,9 +85,13 @@ async function updateDivision(req, res) {
 }
 
 async function searchDivision(req, res) {
-  const { searchString } = req.body;
   try {
-    divisionModel
+    const { searchString } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const divModel = await db.model("Division");
+    divModel
       .find({ $text: { $search: searchString } })
       .populate("categories")
       .limit(3)

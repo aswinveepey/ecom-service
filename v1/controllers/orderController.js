@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const orderModel = require("../models/order");
-const customerModel = require("../models/customer");
-const skuModel = require("../models/sku");
+// const Order = require("../models/order");
+// const Customer = require("../models/customer");
+// const SKU = require("../models/sku");
 const skuRules = require("../services/orderValidations");
 const territoryMappingService = require("../services/territoryMappingService");
 const inventoryService = require("../services/inventoryService");
@@ -9,7 +9,12 @@ const inventoryService = require("../services/inventoryService");
 async function getAllOrders(req, res) {
   //diff between user & customer
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, tenantId } = req.query;
+
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const orderModel = await db.model("Order");
+
     let matchQuery = {};
     if(startDate && endDate){
       matchQuery = {
@@ -78,12 +83,18 @@ async function getAllOrders(req, res) {
     //return orders
     return res.json({ data: orders });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function customerOrderhistory(req, res) {
   auth = req.auth._id;
+  const { tenantId } = req.query;
+
+  const dbConnection = await global.clientConnection;
+  const db = await dbConnection.useDb(tenantId);
+  const customerModel = await db.model("Customer");
+
   customer = await customerModel.findOne({ auth: auth._id });
   !customer && res.status(400).json({ message: "Customer Not Found" });
   try {
@@ -94,35 +105,49 @@ async function customerOrderhistory(req, res) {
       .limit(250);
     return res.json({ data: orders });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function getOneOrder(req, res) {
   try {
     const { orderId } = req.params;
+    const { tenantId } = req.query;
+
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const orderModel = await db.model("Order");
+
     order = await orderModel.findById(orderId).lean();
     return res.json({ data: order });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function createOrder(req, res) {
   try {
     var { customer, orderitems, amount, payment } = req.body;
+    const { tenantId } = req.query;
+
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
+    const orderModel = await db.model("Order");
+    const skuModel = await db.model("Sku");
+
     let territoriesArray = [];
     let territoryQuery = {};
 
     //get user from request
     user = req.user;
     if (!customer.customer) {
-      return res.status(400).json({ message: "Customer Required" });
+      return res.status(400).json({ error: "Customer Required" });
     }
 
     //check if customer id is valid
     if (!mongoose.Types.ObjectId.isValid(customer.customer._id)) {
-      return res.status(400).json({ message: "Invalid customer ID" });
+      return res.status(400).json({ error: "Invalid customer ID" });
     }
 
     //get current customer
@@ -247,6 +272,12 @@ async function updateOrder(req, res) {
   try {
     //get variables from request body
     var { _id, customer, orderitems, amount, payment } = req.body;
+    const { tenantId } = req.query;
+
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const orderModel = await db.model("Order");
+
     //get user from request
     user = req.user;
 
@@ -307,6 +338,12 @@ async function updateOrder(req, res) {
 
 async function searchOrder(req, res) {
   const { searchString } = req.body;
+  const { tenantId } = req.query;
+
+  const dbConnection = await global.clientConnection;
+  const db = await dbConnection.useDb(tenantId);
+  const orderModel = await db.model("Order");
+
   if (!mongoose.Types.ObjectId.isValid(searchString)) {
     return res.status(400).json({ message: "Non Order Ids are not supported" });
   }

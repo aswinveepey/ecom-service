@@ -1,11 +1,12 @@
-const Territory = require("../models/territory");
+// const Territory = require("../models/territory");
 const territoryMappingService = require("../services/territoryMappingService")
 
 //assumption is that with every 
 const territory = async (req, res, next) => {
   try {
-    const { pincode } = req.query;
-    const territories = await territoryMappingService.mapPincodeToTerritory(pincode);
+    const { pincode, tenantId } = req.query;
+
+    const territories = await territoryMappingService.mapPincodeToTerritory(tenantId, pincode);
     req.territories = territories;
     next();
   } catch (error) {

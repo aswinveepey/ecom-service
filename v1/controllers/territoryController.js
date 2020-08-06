@@ -1,13 +1,25 @@
-const territoryModel = require("../models/territory");
+const Territory = require("../models/territory");
 const mongoose = require("mongoose");
 
 async function getTerritories(req, res) {
-  const territories = await territoryModel.find().lean();
-  res.json({ data: territories });
+  try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const territoryModel = await db.model("Territory");
+    const territories = await territoryModel.find().lean();
+    return res.json({ data: territories }); 
+  } catch (error) {
+    return res.json({ error: error.message }); 
+  }
 }
 
 async function getOneTerritory(req, res) {
   const { territoryId } = req.params;
+  const { tenantId } = req.query;
+  const dbConnection = await global.clientConnection;
+  const db = await dbConnection.useDb(tenantId);
+  const territoryModel = await db.model("Territory");
   const territory = await territoryModel.findById(territoryId).lean();
   res.json({ data: territory });
 }
@@ -15,7 +27,11 @@ async function getOneTerritory(req, res) {
 async function createTerritory(req, res) {
   try {
     const { name, pincodes } = req.body;
-    territory = new territoryModel({ name: name, status:true });
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const territoryModel = await db.model("Territory");
+    territory = new territoryModel({ name: name, status: true });
     territory = await territory.save();
     territory = await territoryModel.update(
       { _id: territory._id },
@@ -30,6 +46,10 @@ async function createTerritory(req, res) {
 async function updateTerritory(req, res) {
   try {
     const { _id, name, pincodes, status } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const territoryModel = await db.model("Territory");
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid Territory ID" });
     }
@@ -41,9 +61,9 @@ async function updateTerritory(req, res) {
           status: status,
           updatedat: Date.now(),
         },
-        $addToSet:{
-          pincodes:pincodes
-        }
+        $addToSet: {
+          pincodes: pincodes,
+        },
       },
       { new: true }
     );
@@ -55,8 +75,12 @@ async function updateTerritory(req, res) {
 }
 
 async function searchTerritory(req, res) {
-  const { searchString } = req.body;
   try {
+    const { searchString } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const territoryModel = await db.model("Territory");
     territoryModel
       .find({ $text: { $search: searchString } })
       .limit(3)

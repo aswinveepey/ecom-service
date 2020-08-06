@@ -1,9 +1,14 @@
-const customerModel = require("../models/customer");
-const authModel = require("../models/auth");
+const Customer = require("../models/customer");
+const Auth = require("../models/auth");
 const mongoose = require("mongoose");
 
 async function getAllCustomers(req, res) {
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
+
     customers = await customerModel
       .find()
       .populate("account")
@@ -11,15 +16,21 @@ async function getAllCustomers(req, res) {
       .populate("address")
       .lean()
       .limit(250);
-    res.json({ data: customers });
+    return res.json({ data: customers });
+
   } catch (error) {
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function getOneCustomer(req, res) {
   try {
     var {customerId} = req.params;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
+
     !customerId && res.status(400).json({message: "Customer ID is Required to carry out the operation"})
     customer = await customerModel
       .findById(customerId)
@@ -27,25 +38,33 @@ async function getOneCustomer(req, res) {
       .populate({ path: "auth", select: "username email mobilenumber status" })
       .populate("address")
       .lean();
-    res.json({ data: customer });
+    return res.json({ data: customer });
+
   } catch (error) {
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function getSelf(req, res) {
   try {
     let auth = req.auth;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
+
     customer = await customerModel
       .findOne({"auth":auth._id})
       .populate("account")
       .populate({ path: "auth", select: "username email mobilenumber status" })
       .populate("address")
       .lean();
-    !customer && res.status(400).json({message: "Customer Not Found"})
-    res.json({ data: customer });
+    if(!customer) throw new Error("Customer Not Found")
+
+    return res.json({ data: customer });
+
   } catch (error) {
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
@@ -59,10 +78,14 @@ async function registerCustomer(req, res) {
       contactnumber,
       address,
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
 
     var customer;
     auth = req.auth
-    if(!auth) res.status(401).json({message: "Issue verifying auth token"})
+    if(!auth) {throw new Error("Issue verifying auth token")}
     //create customer
     await customerModel
       .create({
@@ -81,7 +104,7 @@ async function registerCustomer(req, res) {
     return res.json({ data: customer });
   } catch (err) {
     console.log(err);
-    return res.status(400).json({ message: err.message });
+    return res.status(400).json({ error: err.message });
   }
 }
 
@@ -96,6 +119,11 @@ async function selfUpdateCustomer(req, res) {
       address,
       currentaddressindex,
     } = req.body;
+
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
 
     const customer = req.customer
     currentaddressindex = currentaddressindex || 0;
@@ -119,7 +147,7 @@ async function selfUpdateCustomer(req, res) {
     return res.json({ data: customer, message: "Customer Successfully Updated" });
   } catch (err) {
     console.log(err);
-    return res.status(400).json({ message: err });
+    return res.status(400).json({ error: err.message });
   }
 }
 
@@ -136,6 +164,11 @@ async function createCustomer(req, res) {
       auth,
       account
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
+    const authModel = await db.model("Auth");
 
     var customer;
     //create
@@ -164,9 +197,10 @@ async function createCustomer(req, res) {
         customer = data;
       })
     return res.json({ data: customer, message: "Customer Successfully Created" });
+
   } catch (err) {
     console.log(err);
-    return res.status(400).json({ message: err });
+    return res.status(400).json({ error: err.message });
   }
 }
 
@@ -185,6 +219,11 @@ async function updateCustomer(req, res) {
       currentaddressindex,
       auth
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
+    const authModel = await db.model("Auth");
 
     currentaddressindex = currentaddressindex || 0;
 
@@ -222,16 +261,22 @@ async function updateCustomer(req, res) {
       },
     });
     return res.json({ data: customer, message: "Customer Successfully Updated" });
+
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function searchCustomer(req, res) {
   const { searchString } = req.body;
+  const { tenantId } = req.query;
+  const dbConnection = await global.clientConnection;
+  const db = await dbConnection.useDb(tenantId);
+  const customerModel = await db.model("Customer");
+
   try {
-    customerModel
+    const customers = customerModel
       .find(
         { $text: { $search: searchString } },
         { score: { $meta: "textScore" } }
@@ -242,12 +287,11 @@ async function searchCustomer(req, res) {
       .sort({ score: { $meta: "textScore" } })
       .lean()
       .limit(3)
-      .exec(function (err, docs) {
-        return res.json({ data: docs });
-      });
+    return res.json({ data: customers })
+
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({ message: error });
+    console.log(error)
+    return res.status(400).json({ error: error.message })
   }
 }
 

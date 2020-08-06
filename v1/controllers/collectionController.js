@@ -1,20 +1,46 @@
-const collectionModel = require("../models/collection");
+const Collection = require("../models/collection");
 const mongoose = require("mongoose");
 
 async function getCollections(req, res) {
-  const collections = await collectionModel.find().lean();
-  res.json({ data: collections });
+  try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const collectionModel = await db.model("Collection");
+
+    const collections = await collectionModel.find().lean();
+    return res.json({ data: collections });
+
+  } catch (error) {
+    return res.status(400).json({error:error.message})
+  }
+  
 }
 
 async function getOneCollection(req, res) {
-  const { collectionId } = req.params;
-  const collection = await collectionModel.findById(collectionId).lean();
-  res.json({ data: collection });
+  try {
+    const { collectionId } = req.params;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const collectionModel = await db.model("Collection");
+
+    const collection = await collectionModel.findById(collectionId).lean();
+    return res.json({ data: collection });
+
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
 }
 
 async function createCollection(req, res) {
   try {
     const { name, assets, type, items, startdate, enddate, status  } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const collectionModel = await db.model("Collection");
+
     collection = new collectionModel({
       name: name,
       assets: assets,
@@ -28,10 +54,10 @@ async function createCollection(req, res) {
       { _id: collection._id },
       { $addToSet: { items: items } }
     );
-    res.json({ message: "Collection Added Succesfully" });
+    return res.json({ message: "Collection Added Succesfully" });
   } catch (err) {
     console.log(err);
-    res.status(400).json({ error: err });
+    return res.status(400).json({ error: err.message });
   }
 }
 async function updateCollection(req, res) {
@@ -45,6 +71,11 @@ async function updateCollection(req, res) {
       enddate,
       status,
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const collectionModel = await db.model("Collection");
+
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: "Invalid Collection ID" });
     }
@@ -65,16 +96,22 @@ async function updateCollection(req, res) {
       },
       { new: true, upsert: true }
     );
-    res.json({ data:collection, message: "Collection Updated Succesfully" });
+    return res.json({ data:collection, message: "Collection Updated Succesfully" });
+
   } catch (err) {
     console.log(err);
-    res.status(400).json({ error: err });
+    return res.status(400).json({ error: err.message });
   }
 }
 
 async function searchCollection(req, res) {
-  const { searchString } = req.body;
   try {
+    const { searchString } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const collectionModel = await db.model("Collection");
+    
     collectionModel
       .find({ $text: { $search: searchString } })
       .limit(3)
@@ -87,7 +124,7 @@ async function searchCollection(req, res) {
       });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
