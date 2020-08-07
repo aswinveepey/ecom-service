@@ -1,6 +1,10 @@
-const skuModel = require("../models/sku");
+const SKU = require("../models/sku");
 
-const reduceInventory = async (skuParam, territory, quantity) => {
+const reduceInventory = async (tenantId, skuParam, territory, quantity) => {
+  const dbConnection = await global.clientConnection;
+  const db = await dbConnection.useDb(tenantId);
+  const skuModel = await db.model("Sku");
+
   let sku = skuModel.findById(skuParam._id);
   if (!sku)
     throw new Error(

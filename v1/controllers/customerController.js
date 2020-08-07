@@ -269,24 +269,36 @@ async function updateCustomer(req, res) {
 }
 
 async function searchCustomer(req, res) {
-  const { searchString } = req.body;
-  const { tenantId } = req.query;
-  const dbConnection = await global.clientConnection;
-  const db = await dbConnection.useDb(tenantId);
-  const customerModel = await db.model("Customer");
 
   try {
-    const customers = customerModel
-      .find(
-        { $text: { $search: searchString } },
-        { score: { $meta: "textScore" } }
-      )
-      .populate("account")
-      .populate({ path: "auth", select: "username email mobilenumber status" })
-      .populate("address")
-      .sort({ score: { $meta: "textScore" } })
-      .lean()
-      .limit(3)
+    const { searchString } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const customerModel = await db.model("Customer");
+
+    const customers = await customerModel.aggregate([
+      { $match: { $text: { $search: searchString } } },
+      { $limit: 3 },
+      {
+        $lookup: {
+          from: "accounts",
+          localField: "account",
+          foreignField: "_id",
+          as: "account",
+        },
+      },
+      { $unwind: { path: "$account", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "auths",
+          localField: "auth",
+          foreignField: "_id",
+          as: "auth",
+        },
+      },
+      { $unwind: { path: "$auth", preserveNullAndEmptyArrays: true } },
+    ]);
     return res.json({ data: customers })
 
   } catch (error) {

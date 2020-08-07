@@ -81,16 +81,14 @@ async function searchTerritory(req, res) {
     const dbConnection = await global.clientConnection;
     const db = await dbConnection.useDb(tenantId);
     const territoryModel = await db.model("Territory");
-    territoryModel
-      .find({ $text: { $search: searchString } })
-      .limit(3)
-      .exec(function (err, docs) {
-        if (err) {
-          console.log(err);
-          return res.status(400).json({ message: err });
-        }
-        return res.json({ data: docs });
-      });
+
+    const territories = await territoryModel.aggregate([
+      { $match: { $text: { $search: searchString } } },
+      { $limit: 5 },
+    ]);
+
+    return res.json({data:territories})
+    
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error });

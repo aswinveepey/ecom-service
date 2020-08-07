@@ -162,21 +162,12 @@ async function searchUser(req, res){
     const db = await dbConnection.useDb(tenantId);
     const userModel = await db.model("User");
 
-    userModel
-      // .aggregate([{ $match: { $text: { $search: searchString } } }])
-      .find(
-        { $text: { $search: searchString } },
-        { score: { $meta: "textScore" } }
-      )
-      .select("firstname lastname _id")
-      .sort({ score: { $meta: "textScore" } })
-      .limit(3)
-      .exec(function (err, docs) {
-        if (err) {
-          return res.status(400).json({ message: err?.message });
-        }
-        return res.json({ data: docs });
-      });
+    const users = await userModel.aggregate([
+      { $match: { $text: { $search: searchString } } },
+      { $limit: 5 },
+    ]);
+
+    return res.json({ data: users });
   } catch (error) {
     console.log(error)
     return res.status(400).json({ message: error?.message });

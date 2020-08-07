@@ -149,14 +149,38 @@ async function searchProduct(req, res) {
     const db = await dbConnection.useDb(tenantId);
     const productModel = await db.model("Product");
 
-    const products = productModel
-      .find({ $text: { $search: searchString } })
-      .populate({ path: "category", select: "name" })
-      .populate({ path: "brand", select: "name" })
-      .populate("skus")
-      .lean()
-      .limit(3)
+    const products = productModel.aggregate([
+      { $match: { $text: { $search: searchString } } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "category",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "brand",
+          localField: "brand",
+          foreignField: "_id",
+          as: "brand",
+        },
+      },
+      { $unwind: { path: "$brand", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "sku",
+          localField: "_id",
+          foreignField: "product",
+          as: "skus",
+        },
+      },
+    ]);
     return res.json({data:products})
+
   } catch (error) {
     console.log(error);
     return res.status(400).json({ error: error.message });

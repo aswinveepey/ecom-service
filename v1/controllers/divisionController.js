@@ -91,17 +91,23 @@ async function searchDivision(req, res) {
     const dbConnection = await global.clientConnection;
     const db = await dbConnection.useDb(tenantId);
     const divModel = await db.model("Division");
-    divModel
-      .find({ $text: { $search: searchString } })
-      .populate("categories")
-      .limit(3)
-      .exec(function (err, docs) {
-        if (err) {
-          console.log(err);
-          return res.status(400).json({ message: err });
-        }
-        return res.json({ data: docs });
-      });
+
+    const divisions = divModel.aggregate([
+      { $match: { $text: { $search: searchString } } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "categories",
+        },
+      },
+      { $unwind: { path: "$categories", preserveNullAndEmptyArrays: true } },
+    ]);
+    
+    return res.json({data:divisions})
+
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error });

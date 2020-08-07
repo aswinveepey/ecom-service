@@ -100,17 +100,13 @@ async function searchBrand(req, res) {
     const db = await dbConnection.useDb(tenantId);
     const brandModel = await db.model("Brand");
 
-    brandModel
-      .find({ $text: { $search: searchString } })
-      .select("name _id")
-      .limit(3)
-      .exec(function (err, docs) {
-        if (err) {
-          return res.status(400).json({ error: err.message });
-        }
-        return res.json({ data: docs });
-      });
-      
+    const brands = brandModel.aggregate([
+      {$match:{$text:{$seasrch:searchString}}},
+      {$limit:5}
+    ])
+
+    return res.json({data:brands})
+    
   } catch (error) {
     console.log(error);
     return res.status(400).json({ error: error.message });

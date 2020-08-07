@@ -79,6 +79,7 @@ async function getAllOrders(req, res) {
         },
       },
       { $limit: 100 },
+      { $sort: { createdat: -1 } },
     ]);
     //return orders
     return res.json({ data: orders });
@@ -167,6 +168,7 @@ async function createOrder(req, res) {
     customer.customer = currentCustomer;
 
     const territories = await territoryMappingService.mapPincodeToTerritory(
+      tenantId,
       customer.deliveryaddress.pincode
     );
 
@@ -240,6 +242,7 @@ async function createOrder(req, res) {
         item.status = "Booked";
         //reduce inventory
         await inventoryService.reduceInventory(
+          tenantId,
           sku,
           item.quantity.territory,
           item.quantity.booked
@@ -258,10 +261,12 @@ async function createOrder(req, res) {
         return res.status(400).json({ message: err.message });
       });
     order = await order.calculateTotals();
+
     return res.json({
       data: order,
       message: "Succesfully created the order",
     });
+
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: error.message });
@@ -337,31 +342,54 @@ async function updateOrder(req, res) {
 }
 
 async function searchOrder(req, res) {
-  const { searchString } = req.body;
-  const { tenantId } = req.query;
-
-  const dbConnection = await global.clientConnection;
-  const db = await dbConnection.useDb(tenantId);
-  const orderModel = await db.model("Order");
-
-  if (!mongoose.Types.ObjectId.isValid(searchString)) {
-    return res.status(400).json({ message: "Non Order Ids are not supported" });
-  }
   try {
-    orderModel
-      .find({ _id: searchString })
-      .limit(3)
-      .populate({ path: "orderitems.sku.product", select: "name" })
-      .lean()
-      .exec(function (err, docs) {
-        if (err) {
-          return res.status(400).json({ message: err });
-        }
-        return res.json({ data: docs });
-      });
+
+    const { searchString } = req.body;
+    const { tenantId } = req.query;
+
+    const searchregex = new RegExp(searchString)
+
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const orderModel = await db.model("Order");
+
+    const orders = await orderModel.aggregate([
+      { $match: { shortid: { $regex: searchregex } } },
+      { $limit: 5 },
+      { $unwind: "$orderitems" },
+      {
+        $lookup: {
+          from: "products",
+          localField: "orderitems.sku.product",
+          foreignField: "_id",
+          as: "orderitems.sku.product",
+        },
+      },
+      { $unwind: "$orderitems.sku.product" },
+      {
+        $group: {
+          _id: "$_id",
+          shortid: { $first: "$shortid" },
+          orderitems: { $push: "$orderitems" },
+          customer: { $first: "$customer" },
+          amount: { $first: "$amount" },
+          payment: { $first: "$payment" },
+          createdat: { $first: "$createdat" },
+        },
+      },
+      // {
+      //   $unwind: {
+      //     path: "$orderitems.sku.product",
+      //     preserveNullAndEmptyArrays: true,
+      //   },
+      // },
+    ]);
+
+    return res.json({data:orders})
+
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 

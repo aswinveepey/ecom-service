@@ -1,10 +1,15 @@
-const orderModel = require("../models/order");
+const Order = require("../models/order");
 
 //return top 15 skus ids for the current month
-async function getTopOrderedSkus(){
+async function getTopOrderedSkus(tenantId) {
+  
+  const dbConnection = await global.clientConnection;
+  const db = await dbConnection.useDb(tenantId);
+  const orderModel = await db.model("Order");
+
   let endDate = new Date();
-  let startDate =  new Date()
-  startDate.setDate(startDate.getDate()-30)
+  let startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30);
   skus = await orderModel.aggregate([
     //stage 1 - get order data for current month
     {
@@ -39,7 +44,7 @@ async function getTopOrderedSkus(){
     },
   ]);
   //return ids as array
-  return skus.map(item=>item._id)
+  return skus.map((item) => item._id);
 }
 
 module.exports = { getTopOrderedSkus };

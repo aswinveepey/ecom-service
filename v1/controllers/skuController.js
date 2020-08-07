@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const skuModel = require("../models/sku");
-const productModel = require("../models/product");
+const Sku = require("../models/sku");
+const Product = require("../models/product");
 const skuService = require("../services/skuService")
 
 // Get all skus for listing skus, limited to a 100 records. Filterable using filterparms
@@ -9,8 +9,11 @@ const skuService = require("../services/skuService")
 async function getSkus(req, res) {
   try {
     //get query params
-    const { filterBy, filterValue } = req.query;
+    const { filterBy, filterValue, tenantId } = req.query;
     const territories = req.territories;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const skuModel = await db.model("Sku");
     
     //init variables
     let skus = [];
@@ -77,7 +80,7 @@ async function getSkus(req, res) {
         };
         //top products filter
       } else if (filterBy.toLowerCase()==="top"){
-        const topSkus = await skuService.getTopOrderedSkus();
+        const topSkus = await skuService.getTopOrderedSkus(tenantId);
         // get top skus by ID
         filterQuery = {
           _id: { $in: topSkus },
@@ -113,13 +116,18 @@ async function getSkus(req, res) {
     return res.json({ data: skus });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function getOneSku(req, res) {
   try {
     const { skuId } = req.params;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const skuModel = await db.model("Sku");
+
     const territories = req.territories;
     let territoriesArray = [];
     let territoryQuery = {};
@@ -213,7 +221,7 @@ async function getOneSku(req, res) {
     return res.json({ data: skus[0] });
   } catch (error) {
     console.log(error)
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 
@@ -230,7 +238,12 @@ async function createSku(req, res) {
       bulkdiscount,
       quantityrules,
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const skuModel = await db.model("Sku");
     user = req.user;
+
     if (!mongoose.Types.ObjectId.isValid(product)) {
       return res.status(400).json({ message: "Invalid product ID" });
     }
@@ -240,6 +253,7 @@ async function createSku(req, res) {
       }
       data.territory = data.territory._id;
     });
+
     sku = await skuModel.create({
       name: name,
       product: product,
@@ -251,10 +265,12 @@ async function createSku(req, res) {
       quantityrules: quantityrules,
       bulkdiscount: bulkdiscount,
     });
+
     return res.json({ data: sku });
+
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
@@ -272,6 +288,11 @@ async function updateSku(req, res) {
       bulkdiscount,
       quantityrules,
     } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const skuModel = await db.model("Sku");
+
     user = req.user;
     inventory.forEach((data) => {
       if (!mongoose.Types.ObjectId.isValid(data.territory._id)) {
@@ -309,13 +330,18 @@ async function updateSku(req, res) {
     return res.json(sku);
   } catch (err) {
     console.log(err);
-    return res.status(400).json({ message: err });
+    return res.status(400).json({ error: err.message });
   }
 }
 
 async function searchSku(req, res) {
-  const { searchString } = req.body;
   try {
+    const { searchString } = req.body;
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const skuModel = await db.model("Sku");
+
     skuModel
       .find({ $text: { $search: searchString } })
       .populate("product")
@@ -327,9 +353,10 @@ async function searchSku(req, res) {
         }
         return res.json({ data: docs });
       });
+      
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const orderModel = require("../models/order");
-const cartModel = require("../models/cart");
-const skuModel = require("../models/sku");
+const Order = require("../models/order");
+const Cart = require("../models/cart");
+const Sku = require("../models/sku");
 const skuRules = require("../services/orderValidations")
 const territoryMappingService = require("../services/territoryMappingService")
 const inventoryService = require("../services/inventoryService");
@@ -11,21 +11,34 @@ const inventoryService = require("../services/inventoryService");
 
 async function getSelfCart(req, res) {
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const cartModel = await db.model("Cart");
+
     customer = req.customer;
     if(!customer) throw new Error("Customer Not Found");
+    
     cart = await cartModel
       .findOne({ customer: customer._id })
       // .populate("cartitems.sku")
       .lean();
     return res.json({ data: cart });
+  
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function addtoCart(req, res) {
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const cartModel = await db.model("Cart");
+    const skuModel = await db.model("Sku");
+
     customer = req.customer;
     var { sku, quantity } = req.body;
     
@@ -54,15 +67,24 @@ async function addtoCart(req, res) {
     );
     cart.cartitems.push({ sku: skuData._id, quantity: quantity });
     await cart.save();
+    
     return res.json({ data: cart, message:"Cart item added succesfully" });
+
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 async function checkout(req, res) {
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const cartModel = await db.model("Cart");
+    const skuModel = await db.model("Sku");
+    const orderModel = await db.model("Order");
+
     auth = req.auth._id;
 
     let amount = {
@@ -87,6 +109,7 @@ async function checkout(req, res) {
     customer.billingaddress = customer.billingaddress || currentCustomer.address[currentCustomer.currentaddressindex];
 
     const territories = await territoryMappingService.mapPincodeToTerritory(
+      tenantId,
       customer.deliveryaddress.pincode
     );
 
@@ -96,7 +119,7 @@ async function checkout(req, res) {
     if (territoriesArray.length > 0) {
       territoryQuery = { "inventory.territory": { $in: territoriesArray } };
     }
-    console.log(customer);
+
     cart = await cartModel
       .findOne({
         "customer": mongoose.Types.ObjectId(customer.customer._id),
@@ -155,6 +178,7 @@ async function checkout(req, res) {
         orderitems.push(orderitem);
         //reduce inventory
         await inventoryService.reduceInventory(
+          tenantId,
           sku,
           orderitem.quantity.territory,
           orderitem.quantity.booked
@@ -178,9 +202,12 @@ async function checkout(req, res) {
     }
     order = await order.calculateTotals();
     return res.json({ data: order, message:"Succesfully Placed the order" });
+
   } catch (error) {
+
     console.log(error);
     return res.status(400).json({ message: error.message });
+
   }
 }
 

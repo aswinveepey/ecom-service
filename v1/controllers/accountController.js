@@ -66,15 +66,11 @@ async function searchAccount(req, res) {
     const db = await dbConnection.useDb(tenantId);
     const accountModel = await db.model("Account");
 
-    accountModel
-      .find({ $text: { $search: searchString } })
-      .limit(3)
-      .exec(function (err, docs) {
-        if (err) {
-          return res.status(400).json({ error: err.message });
-        }
-        return res.json({ data: docs });
-      });
+    const accounts = await accountModel.aggregate([
+      { $match: { $text: { $search: searchString } } },
+      { $limit: 3 },
+    ]);
+    return res.json({ data: accounts });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ error: error.message });
@@ -89,9 +85,11 @@ async function updateAccount(req, res) {
     const accountModel = await db.model("Account");
 
     var { _id, name, type, primarycontact, address, gstin } = req.body;
+
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       throw new Error("Invalid Account ID")
     }
+    
     account = await accountModel.findByIdAndUpdate(
       mongoose.Types.ObjectId(_id),
       {
