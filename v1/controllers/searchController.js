@@ -10,9 +10,7 @@ async function search(req, res) {
     const db = await dbConnection.useDb(tenantId);
     const userModel = await db.model("User");
 
-    console.log("Called")
-
-    var searchReqArr = [];
+    // var searchReqArr = [];
     const query = [
       { $match: { $text: { $search: searchString } } },
       { $limit: 2 },
@@ -21,7 +19,7 @@ async function search(req, res) {
     //   searchReqArr.push(userModel.aggregate(query))
     // );
     const searchresult = await userModel.aggregate(query);
-    
+
     console.log(searchresult)
     return res.json({ data: searchresult });
 
