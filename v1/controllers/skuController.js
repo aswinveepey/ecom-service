@@ -330,7 +330,7 @@ async function searchSku(req, res) {
     const db = req.db;
     const skuModel = await db.model("Sku");
 
-    const skus = skuModel.aggregate([
+    const skus = await skuModel.aggregate([
       {
         $match: { $text: { $search: searchString } },
       },
