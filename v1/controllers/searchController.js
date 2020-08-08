@@ -1,13 +1,10 @@
-const User = require("../models/user");
+// const User = require("../models/user");
 
 
 async function search(req, res) {
   try {
     const { searchString } = req.body;
-    const { tenantId } = req.query;
-
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const userModel = await db.model("User");
 
     // var searchReqArr = [];

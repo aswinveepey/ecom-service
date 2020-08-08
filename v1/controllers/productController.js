@@ -1,11 +1,9 @@
 const mongoose = require("mongoose");
-const Product = require("../models/product");
+// const Product = require("../models/product");
 
 async function getAllProducts(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const productModel = await db.model("Product");
 
     products = await productModel
@@ -25,9 +23,7 @@ async function getAllProducts(req, res) {
 async function getOneProduct(req, res) {
   try {
     const { productId } = req.params;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const productModel = await db.model("Product");
 
     product = await productModel
@@ -56,9 +52,7 @@ async function createProduct(req, res) {
       logistics,
       gst,
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const productModel = await db.model("Product");
 
     if (!mongoose.Types.ObjectId.isValid(category._id)) {
@@ -101,9 +95,7 @@ async function updateProduct(req, res) {
       logistics,
       gst,
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const productModel = await db.model("Product");
 
     if (!mongoose.Types.ObjectId.isValid(_id)) {
@@ -144,9 +136,7 @@ async function updateProduct(req, res) {
 async function searchProduct(req, res) {
   try {
     const { searchString } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const productModel = await db.model("Product");
 
     const products = productModel.aggregate([

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const Sku = require("../models/sku");
-const Product = require("../models/product");
+// const Sku = require("../models/sku");
+// const Product = require("../models/product");
 const skuService = require("../services/skuService")
 
 // Get all skus for listing skus, limited to a 100 records. Filterable using filterparms
@@ -9,10 +9,9 @@ const skuService = require("../services/skuService")
 async function getSkus(req, res) {
   try {
     //get query params
-    const { filterBy, filterValue, tenantId } = req.query;
+    const { filterBy, filterValue } = req.query;
     const territories = req.territories;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const skuModel = await db.model("Sku");
     
     //init variables
@@ -80,7 +79,7 @@ async function getSkus(req, res) {
         };
         //top products filter
       } else if (filterBy.toLowerCase()==="top"){
-        const topSkus = await skuService.getTopOrderedSkus(tenantId);
+        const topSkus = await skuService.getTopOrderedSkus({db:db});
         // get top skus by ID
         filterQuery = {
           _id: { $in: topSkus },
@@ -123,9 +122,7 @@ async function getSkus(req, res) {
 async function getOneSku(req, res) {
   try {
     const { skuId } = req.params;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const skuModel = await db.model("Sku");
 
     const territories = req.territories;
@@ -238,9 +235,7 @@ async function createSku(req, res) {
       bulkdiscount,
       quantityrules,
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const skuModel = await db.model("Sku");
     user = req.user;
 
@@ -288,9 +283,7 @@ async function updateSku(req, res) {
       bulkdiscount,
       quantityrules,
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const skuModel = await db.model("Sku");
 
     user = req.user;
@@ -337,22 +330,26 @@ async function updateSku(req, res) {
 async function searchSku(req, res) {
   try {
     const { searchString } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const skuModel = await db.model("Sku");
 
-    skuModel
-      .find({ $text: { $search: searchString } })
-      .populate("product")
-      .populate("inventory")
-      .limit(3)
-      .exec(function (err, docs) {
-        if (err) {
-          return res.status(400).json({ message: err });
-        }
-        return res.json({ data: docs });
-      });
+    const skus = skuModel.aggregate([
+      {
+        $match: { $text: { $search: searchString } },
+      },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "products",
+          localField: "product",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      {$unwind:"$product"}
+    ]);
+
+    return res.json({data:skus})
       
   } catch (error) {
     console.log(error);

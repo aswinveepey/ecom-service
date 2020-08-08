@@ -1,11 +1,9 @@
-const Collection = require("../models/collection");
+// const Collection = require("../models/collection");
 const mongoose = require("mongoose");
 
 async function getCollections(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const collectionModel = await db.model("Collection");
 
     const collections = await collectionModel.find().lean();
@@ -20,9 +18,7 @@ async function getCollections(req, res) {
 async function getOneCollection(req, res) {
   try {
     const { collectionId } = req.params;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const collectionModel = await db.model("Collection");
 
     const collection = await collectionModel.findById(collectionId).lean();
@@ -36,9 +32,7 @@ async function getOneCollection(req, res) {
 async function createCollection(req, res) {
   try {
     const { name, assets, type, items, startdate, enddate, status  } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const collectionModel = await db.model("Collection");
 
     collection = new collectionModel({
@@ -71,9 +65,7 @@ async function updateCollection(req, res) {
       enddate,
       status,
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const collectionModel = await db.model("Collection");
 
     if (!mongoose.Types.ObjectId.isValid(_id)) {
@@ -107,21 +99,16 @@ async function updateCollection(req, res) {
 async function searchCollection(req, res) {
   try {
     const { searchString } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const collectionModel = await db.model("Collection");
+
+    const collections = await collectionModel.aggregate([
+      { $match: { $text: { $search: searchString } } },
+      { $limit: 5 },
+    ]);
     
-    collectionModel
-      .find({ $text: { $search: searchString } })
-      .limit(3)
-      .exec(function (err, docs) {
-        if (err) {
-          console.log(err);
-          return res.status(400).json({ message: err });
-        }
-        return res.json({ data: docs });
-      });
+    return res.json({data:collections})
+
   } catch (error) {
     console.log(error);
     return res.status(400).json({ error: error.message });

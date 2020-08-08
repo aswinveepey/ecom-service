@@ -5,6 +5,7 @@ var bodyParser = require("body-parser");
 var cors = require("cors");
 var compression = require("compression");
 const { initClientDbConnection } = require("./v1/db/dbutil");
+const {processTenantDb} = require('./v1/middlewares/tenant')
 
 //env config
 require("dotenv").config();
@@ -51,12 +52,13 @@ app.use(
 );
 // parse application/json
 app.use(bodyParser.json());
+
+global.clientConnection = initClientDbConnection();
+
 /**
  * Add prefix version to the route
  */
-app.use("/api/v1", routerV1);
-
-global.clientConnection = initClientDbConnection();
+app.use("/api/v1", processTenantDb, routerV1);
 
 app.listen(process.env.SERVICE_PORT || 3002, () =>
   console.log(`Service ready & listening at port: ` + process.env.SERVICE_PORT)

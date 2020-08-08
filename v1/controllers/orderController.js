@@ -9,10 +9,9 @@ const inventoryService = require("../services/inventoryService");
 async function getAllOrders(req, res) {
   //diff between user & customer
   try {
-    const { startDate, endDate, tenantId } = req.query;
+    const { startDate, endDate } = req.query;
 
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const orderModel = await db.model("Order");
 
     let matchQuery = {};
@@ -83,28 +82,29 @@ async function getAllOrders(req, res) {
     ]);
     //return orders
     return res.json({ data: orders });
+
   } catch (error) {
+    console.log(error)
     return res.status(400).json({ error: error.message });
   }
 }
 
 async function customerOrderhistory(req, res) {
-  auth = req.auth._id;
-  const { tenantId } = req.query;
-
-  const dbConnection = await global.clientConnection;
-  const db = await dbConnection.useDb(tenantId);
-  const customerModel = await db.model("Customer");
-
-  customer = await customerModel.findOne({ auth: auth._id });
-  !customer && res.status(400).json({ message: "Customer Not Found" });
   try {
+    auth = req.auth._id;
+    const db = req.db;
+    const customerModel = await db.model("Customer");
+
+    customer = await customerModel.findOne({ auth: auth._id });
+    if(!customer) throw new Error("Customer Not Found")
+
     orders = await orderModel
       .find({ "customer.customer._id": customer._id })
       .populate({ path: "orderitems.sku.product", select: "name" })
       .lean()
       .limit(250);
     return res.json({ data: orders });
+
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -113,10 +113,7 @@ async function customerOrderhistory(req, res) {
 async function getOneOrder(req, res) {
   try {
     const { orderId } = req.params;
-    const { tenantId } = req.query;
-
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const orderModel = await db.model("Order");
 
     order = await orderModel.findById(orderId).lean();
@@ -129,10 +126,7 @@ async function getOneOrder(req, res) {
 async function createOrder(req, res) {
   try {
     var { customer, orderitems, amount, payment } = req.body;
-    const { tenantId } = req.query;
-
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
     const orderModel = await db.model("Order");
     const skuModel = await db.model("Sku");
@@ -167,10 +161,10 @@ async function createOrder(req, res) {
     //assign customer to customer.customer
     customer.customer = currentCustomer;
 
-    const territories = await territoryMappingService.mapPincodeToTerritory(
-      tenantId,
-      customer.deliveryaddress.pincode
-    );
+    const territories = await territoryMappingService.mapPincodeToTerritory({
+      db: db,
+      pincode: customer.deliveryaddress.pincode,
+    });
 
     territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
 
@@ -217,7 +211,7 @@ async function createOrder(req, res) {
         //get inventory based on customer territory - TODO
         item.selectedInventoryImdex = 0;
         //Quantity Rule Validations
-        await skuRules.validateSkuQuantityRules(sku, item.quantity.booked);
+        await skuRules.validateSkuQuantityRules({sku:sku, quantity:item.quantity.booked});
         //min qty rule
         if (!(item.quantity.booked >= sku.quantityrules.minorderqty)) {
           throw new Error(
@@ -241,12 +235,12 @@ async function createOrder(req, res) {
         //set default status
         item.status = "Booked";
         //reduce inventory
-        await inventoryService.reduceInventory(
-          tenantId,
-          sku,
-          item.quantity.territory,
-          item.quantity.booked
-        );
+        await inventoryService.reduceInventory({
+          db: db,
+          skuParam: dku,
+          territory: item.quantity.territory,
+          quantity: item.quantity.booked,
+        });
       })
     );
     order = await orderModel
@@ -277,10 +271,7 @@ async function updateOrder(req, res) {
   try {
     //get variables from request body
     var { _id, customer, orderitems, amount, payment } = req.body;
-    const { tenantId } = req.query;
-
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const orderModel = await db.model("Order");
 
     //get user from request
@@ -345,12 +336,10 @@ async function searchOrder(req, res) {
   try {
 
     const { searchString } = req.body;
-    const { tenantId } = req.query;
+    const db = req.db;
 
     const searchregex = new RegExp(searchString)
 
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
     const orderModel = await db.model("Order");
 
     const orders = await orderModel.aggregate([
@@ -377,12 +366,6 @@ async function searchOrder(req, res) {
           createdat: { $first: "$createdat" },
         },
       },
-      // {
-      //   $unwind: {
-      //     path: "$orderitems.sku.product",
-      //     preserveNullAndEmptyArrays: true,
-      //   },
-      // },
     ]);
 
     return res.json({data:orders})

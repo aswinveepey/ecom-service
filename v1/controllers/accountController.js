@@ -1,11 +1,10 @@
-const Account = require("../models/account");
+// const Account = require("../models/account");
 const mongoose = require("mongoose");
 
 async function getAllAccounts(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    //get db from req
+    const db = req.db;
     const accountModel = await db.model("Account");
 
     accounts = await accountModel.find().populate("address").lean().limit(250);
@@ -19,9 +18,8 @@ async function getAllAccounts(req, res) {
 async function getOneAccount(req, res) {
   try {
     const { accountId } = req.params;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    //get db from req
+    const db = req.db;
     const accountModel = await db.model("Account");
 
     if (!accountId) {
@@ -38,9 +36,8 @@ async function getOneAccount(req, res) {
 async function createAccount(req, res) {
   try {
     var { name, type, gstin, primarycontact, address } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    //get db from req
+    const db = req.db;
     const accountModel = await db.model("Account");
 
     const account = await accountModel.create({
@@ -61,9 +58,8 @@ async function createAccount(req, res) {
 async function searchAccount(req, res) {
   try {
     const { searchString } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    //get db from req
+    const db = req.db;
     const accountModel = await db.model("Account");
 
     const accounts = await accountModel.aggregate([
@@ -79,9 +75,8 @@ async function searchAccount(req, res) {
 
 async function updateAccount(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    //get db from req
+    const db = req.db;
     const accountModel = await db.model("Account");
 
     var { _id, name, type, primarycontact, address, gstin } = req.body;
@@ -105,6 +100,7 @@ async function updateAccount(req, res) {
     );
 
     return res.json({ data: account });
+
   } catch (error) {
     console.log(error);
     return res.status(400).json({ error: error.message });

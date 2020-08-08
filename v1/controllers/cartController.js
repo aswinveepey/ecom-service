@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const Order = require("../models/order");
-const Cart = require("../models/cart");
-const Sku = require("../models/sku");
+// const Order = require("../models/order");
+// const Cart = require("../models/cart");
+// const Sku = require("../models/sku");
 const skuRules = require("../services/orderValidations")
 const territoryMappingService = require("../services/territoryMappingService")
 const inventoryService = require("../services/inventoryService");
@@ -11,9 +11,7 @@ const inventoryService = require("../services/inventoryService");
 
 async function getSelfCart(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const cartModel = await db.model("Cart");
 
     customer = req.customer;
@@ -33,9 +31,7 @@ async function getSelfCart(req, res) {
 
 async function addtoCart(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const cartModel = await db.model("Cart");
     const skuModel = await db.model("Sku");
 
@@ -54,7 +50,7 @@ async function addtoCart(req, res) {
     if (!skuData) throw new Error("SKU OOS or inactive");
     
     //Validate quantity rules
-    await skuRules.validateSkuQuantityRules(skuData, quantity)
+    await skuRules.validateSkuQuantityRules({sku:skuData, quantity:quantity})
     
     // Update Cart
     cart = await cartModel.findOneAndUpdate(
@@ -78,9 +74,7 @@ async function addtoCart(req, res) {
 
 async function checkout(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const cartModel = await db.model("Cart");
     const skuModel = await db.model("Sku");
     const orderModel = await db.model("Order");
@@ -108,10 +102,10 @@ async function checkout(req, res) {
     customer.deliveryaddress = customer.deliveryaddress || currentCustomer.address[currentCustomer.currentaddressindex];
     customer.billingaddress = customer.billingaddress || currentCustomer.address[currentCustomer.currentaddressindex];
 
-    const territories = await territoryMappingService.mapPincodeToTerritory(
-      tenantId,
-      customer.deliveryaddress.pincode
-    );
+    const territories = await territoryMappingService.mapPincodeToTerritory({
+      db: db,
+      pincode: customer.deliveryaddress.pincode,
+    });
 
     territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
 
@@ -156,7 +150,7 @@ async function checkout(req, res) {
           throw new Error("Specified SKU could not be found for the selected address");
         }
         //Quantity Rule Validations
-        await skuRules.validateSkuQuantityRules(sku, item.quantity);
+        await skuRules.validateSkuQuantityRules({sku:sku, quantity:item.quantity});
 
         //Inventory Operations
         //check if inventory for particular sku exists
@@ -177,12 +171,12 @@ async function checkout(req, res) {
         orderitem.status = "Booked";
         orderitems.push(orderitem);
         //reduce inventory
-        await inventoryService.reduceInventory(
-          tenantId,
-          sku,
-          orderitem.quantity.territory,
-          orderitem.quantity.booked
-        );
+        await inventoryService.reduceInventory({
+          db: db,
+          skuParam: sku,
+          territory: orderitem.quantity.territory,
+          quantity: orderitem.quantity.booked,
+        });
       })
     );
     order = await orderModel
@@ -194,7 +188,7 @@ async function checkout(req, res) {
       })
       .catch((err) => {
         console.log(err);
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({ error: err.message });
       });
     if(order){
       cart.cartitems = [];
@@ -206,7 +200,7 @@ async function checkout(req, res) {
   } catch (error) {
 
     console.log(error);
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ error: error.message });
 
   }
 }

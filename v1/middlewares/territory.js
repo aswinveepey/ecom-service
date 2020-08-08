@@ -4,14 +4,17 @@ const territoryMappingService = require("../services/territoryMappingService")
 //assumption is that with every 
 const territory = async (req, res, next) => {
   try {
-    const { pincode, tenantId } = req.query;
+    const { pincode } = req.query;
+    const db = req.db
 
-    const territories = await territoryMappingService.mapPincodeToTerritory(tenantId, pincode);
+    const territories = await territoryMappingService.mapPincodeToTerritory({db:db, pincode:pincode});
     req.territories = territories;
+
     next();
+
   } catch (error) {
     console.log(error);
-    res.status(400).send({ message: "Error while retrieving territories" });
+    res.status(400).json({ error: error.message });
   }
 };
 

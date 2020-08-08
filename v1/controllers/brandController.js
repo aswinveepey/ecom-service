@@ -5,9 +5,7 @@ const mongoose = require("mongoose");
 
 async function getAllBrands(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = await req.db;
     const brandModel = await db.model("Brand");
 
     brands = await brandModel.find().lean().limit(250);
@@ -21,9 +19,7 @@ async function getAllBrands(req, res) {
 async function getOneBrand(req, res) {
   try {
     const { brandId } = req.params;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = await req.db;
     const brandModel = await db.model("Brand");
     const productModel = await db.model("Product");
     const categoryModel = await db.model("Category");
@@ -49,9 +45,7 @@ async function getOneBrand(req, res) {
 async function createBrand(req, res) {
   try {
     var { name, assets, manufacturer } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = await req.db;
     const brandModel = await db.model("Brand");
 
     brand = await brandModel.create({
@@ -70,9 +64,7 @@ async function createBrand(req, res) {
 async function updateBrand(req, res) {
   try {
     var { _id, name, manufacturer, assets } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = await req.db;
     const brandModel = await db.model("Brand");
 
     if (!mongoose.Types.ObjectId.isValid(_id)) {
@@ -101,13 +93,11 @@ async function updateBrand(req, res) {
 async function searchBrand(req, res) {
   try {
     const { searchString } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = await req.db;
     const brandModel = await db.model("Brand");
 
-    const brands = brandModel.aggregate([
-      {$match:{$text:{$seasrch:searchString}}},
+    const brands = await brandModel.aggregate([
+      {$match:{$text:{$search:searchString}}},
       {$limit:5}
     ])
 

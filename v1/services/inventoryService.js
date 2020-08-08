@@ -1,8 +1,6 @@
 const SKU = require("../models/sku");
 
-const reduceInventory = async (tenantId, skuParam, territory, quantity) => {
-  const dbConnection = await global.clientConnection;
-  const db = await dbConnection.useDb(tenantId);
+const reduceInventory = async ({ db, skuParam, territory, quantity }) => {
   const skuModel = await db.model("Sku");
 
   let sku = skuModel.findById(skuParam._id);
@@ -10,6 +8,7 @@ const reduceInventory = async (tenantId, skuParam, territory, quantity) => {
     throw new Error(
       "Issue encountered while retrieving sku for inventory reduction"
     );
+  //get sku and update inventory
   sku = await sku.updateOne(
     { _id: skuParam._id },
     {

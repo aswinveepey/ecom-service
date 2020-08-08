@@ -1,12 +1,10 @@
-const Customer = require("../models/customer");
-const Auth = require("../models/auth");
+// const Customer = require("../models/customer");
+// const Auth = require("../models/auth");
 const mongoose = require("mongoose");
 
 async function getAllCustomers(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
 
     customers = await customerModel
@@ -26,9 +24,7 @@ async function getAllCustomers(req, res) {
 async function getOneCustomer(req, res) {
   try {
     var {customerId} = req.params;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
 
     !customerId && res.status(400).json({message: "Customer ID is Required to carry out the operation"})
@@ -47,10 +43,8 @@ async function getOneCustomer(req, res) {
 
 async function getSelf(req, res) {
   try {
-    let auth = req.auth;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const auth = req.auth;
+    const db = req.db;
     const customerModel = await db.model("Customer");
 
     customer = await customerModel
@@ -78,9 +72,7 @@ async function registerCustomer(req, res) {
       contactnumber,
       address,
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
 
     var customer;
@@ -120,9 +112,7 @@ async function selfUpdateCustomer(req, res) {
       currentaddressindex,
     } = req.body;
 
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
 
     const customer = req.customer
@@ -164,9 +154,7 @@ async function createCustomer(req, res) {
       auth,
       account
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
     const authModel = await db.model("Auth");
 
@@ -219,9 +207,7 @@ async function updateCustomer(req, res) {
       currentaddressindex,
       auth
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
     const authModel = await db.model("Auth");
 
@@ -272,14 +258,12 @@ async function searchCustomer(req, res) {
 
   try {
     const { searchString } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
 
     const customers = await customerModel.aggregate([
       { $match: { $text: { $search: searchString } } },
-      { $limit: 3 },
+      { $limit: 5 },
       {
         $lookup: {
           from: "accounts",

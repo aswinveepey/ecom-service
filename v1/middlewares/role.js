@@ -6,7 +6,7 @@ const admin = async (req, res, next) => {
     }
     next();
   } catch (error) {
-    res.status(401).send({ message: "Admin only resource. Ensure valid permissions" });
+    res.status(401).json({ error: "Admin only resource. Ensure valid permissions" });
   }
 };
 

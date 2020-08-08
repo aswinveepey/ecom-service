@@ -1,12 +1,11 @@
-const Customer = require("../models/customer")
-const Order = require("../models/order")
+// const Customer = require("../models/customer")
+// const Order = require("../models/order")
 
 async function getCustomerCount(req, res){
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
+    
     customerData = await customerModel.aggregate([
       //first stage join auth to get status
       {
@@ -27,18 +26,19 @@ async function getCustomerCount(req, res){
         },
       },
     ]);
+    
     res.json({ data: customerData });
+
   } catch (error) {
     console.log(error)
-    res.status(400).json({message:error.message})
+    res.status(400).json({error:error.message})
   }
 }
 
 async function getGmvdata(req, res){
   try {
-    const { filterBy, tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const { filterBy } = req.query;
+    const db = req.db;
     const orderModel = await db.model("Order");
 
     let startDate;
@@ -64,6 +64,7 @@ async function getGmvdata(req, res){
         endDate = tomorrow;
         break;
     }
+
     gmvData = await orderModel.aggregate([
       // First Stage - match based on query params
       { $match: { createdat: { $gte: startDate, $lte: endDate } } },
@@ -85,18 +86,18 @@ async function getGmvdata(req, res){
         },
       },
     ]);
+    
     res.json({data:gmvData})
+
   } catch (error) {
     console.log(error)
-    res.status(400).json({message:error.message})
+    res.status(400).json({error:error.message})
   }
 }
 
 async function getGmvTimeSeries(req, res){
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const orderModel = await db.model("Order");
     
     monthGmv = await orderModel.aggregate([
@@ -127,22 +128,23 @@ async function getGmvTimeSeries(req, res){
         $sort: { _id: 1 },
       },
     ]);
+    
     res.json({data:monthGmv})
+
   } catch (error) {
     console.log(error)
-    res.status(400).json({message:error.message})
+    res.status(400).json({error:error.message})
   }
 }
 async function orderItemDataDump(req, res){
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const orderModel = await db.model("Order");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
     endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
     const orderitems = await orderModel.aggregate([
       { $match: { createdat: { $gte: startDate, $lte: endDate } } },
       { $unwind: "$orderitems" },
@@ -203,19 +205,19 @@ async function orderItemDataDump(req, res){
         },
       },
     ]);
-    console.log(orderitems);
+
     res.json({data:orderitems})
+
   } catch (error) {
     console.log(error);
-    res.status(400).json({message:error.message})
+    res.status(400).json({error:error.message})
   }
 }
 async function customerDataDump(req, res){
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const customerModel = await db.model("Customer");
+
     const customers = await customerModel.aggregate([
       {
         $lookup: {
@@ -257,10 +259,12 @@ async function customerDataDump(req, res){
         },
       },
     ]);
+
     res.json({ data: customers });
+
   } catch (error) {
     console.log(error);
-    res.status(400).json({message:error.message})
+    res.status(400).json({error:error.message})
   }
 }
 

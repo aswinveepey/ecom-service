@@ -1,13 +1,12 @@
-const User = require('../models/user')
-const Auth = require('../models/auth')
+// const User = require('../models/user')
+// const Auth = require('../models/auth')
 const mongoose = require("mongoose");
 
 async function getAllUsers(req,res){
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const userModel = await db.model("User");
+
     users = await userModel
       .find()
       .populate({ path: "role", select: "name" })
@@ -16,18 +15,18 @@ async function getAllUsers(req,res){
       .populate({ path: "auth", select: "username email mobilenumber status" })
       .lean()
       .limit(250);
-    return res.json({ data: users });
+    
+      return res.json({ data: users });
+
   } catch (error) {
-    return res.status(400).json({message: error?.message});
+    return res.status(400).json({message: error.message});
   }
 }
 
 async function getOneUser(req,res){
   try {
     const { userId } = req.params;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const userModel = await db.model("User");
 
     user = await userModel
@@ -37,9 +36,11 @@ async function getOneUser(req,res){
       .populate({ path: "divisions", select: "name" })
       .populate({ path: "auth", select: "username email mobilenumber status" })
       .lean();
+    
     return res.json({ data: user });
+    
   } catch (error) {
-    return res.status(400).json({message: error?.message});
+    return res.status(400).json({message: error.message});
   }
 }
 
@@ -56,9 +57,7 @@ async function createUser(req, res) {
       divisions,
       territories,
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
 
     const userModel = await db.model("User");
     const authModel = await db.model("Auth");
@@ -87,10 +86,12 @@ async function createUser(req, res) {
       user.territories.push(element);
     });
     user.save()
+    
     return res.json({ data: user.auth.username });
+
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: error?.message });
+    return res.status(400).json({ message: error.message });
   }
 }
 
@@ -108,9 +109,7 @@ async function updateUser(req,res){
       divisions,
       territories,
     } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const userModel = await db.model("User");
     const authModel = await db.model("Auth");
 
@@ -147,19 +146,18 @@ async function updateUser(req,res){
         status: auth.status,
       },
     });
-    return res.json(user);
+    return res.json({data:user});
+
   } catch (error) {
     console.log(error);
-    return res.status(400).json({message: error?.message});
+    return res.status(400).json({message: error.message});
   }
 }
 
 async function searchUser(req, res){
   try {
     const { searchString } = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const userModel = await db.model("User");
 
     const users = await userModel.aggregate([
@@ -170,7 +168,7 @@ async function searchUser(req, res){
     return res.json({ data: users });
   } catch (error) {
     console.log(error)
-    return res.status(400).json({ message: error?.message });
+    return res.status(400).json({ message: error.message });
   }
 }
 
@@ -199,7 +197,7 @@ async function getSelf(req, res){
   } catch (error) {
     //catch log & return error
     console.log(error)
-    res.status(400).json({message:error?.message})
+    res.status(400).json({error:error.message})
 
   }
 }

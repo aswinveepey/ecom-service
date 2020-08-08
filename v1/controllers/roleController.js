@@ -1,14 +1,15 @@
-const Role = require('../models/roles')
+// const Role = require('../models/roles')
 // const permissionModel = require('../models/permission')
 
 async function getRoles(req, res){
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    
+    const db = req.db;
     const roleModel = await db.model("Role");
+
     const roles = await roleModel.find().populate("permissions").lean();
     return res.json({ data: roles });
+
   } catch (error) {
     return res.status(400).json({error:error.message})
   }
@@ -17,9 +18,7 @@ async function getRoles(req, res){
 async function createRoles(req, res){
   try {
     const {name, permissions} = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const roleModel = await db.model("Role");
     
     role = new roleModel({name: name});

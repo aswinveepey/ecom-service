@@ -1,5 +1,5 @@
 //validate qty rules of an sku
-async function validateSkuQuantityRules(sku, quantity){
+async function validateSkuQuantityRules({ sku, quantity }) {
   //min order qty validations
   if (quantity < sku.quantityrules.minorderqty)
     throw new Error(

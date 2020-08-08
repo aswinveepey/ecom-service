@@ -1,10 +1,8 @@
-const Permission = require("../models/permission");
+// const Permission = require("../models/permission");
 
 async function getPermissions(req, res) {
   try {
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const permissionModel = await db.model("Permission");
 
     permissions = await permissionModel.find();
@@ -18,9 +16,7 @@ async function getPermissions(req, res) {
 async function createPermission(req, res){
   try {
     const payload = req.body;
-    const { tenantId } = req.query;
-    const dbConnection = await global.clientConnection;
-    const db = await dbConnection.useDb(tenantId);
+    const db = req.db;
     const permissionModel = await db.model("Permission");
 
     permission = new permissionModel(payload);
