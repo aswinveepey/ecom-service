@@ -54,6 +54,12 @@ app.use(
 app.use(bodyParser.json());
 
 global.clientConnection = initClientDbConnection();
+/**
+ * Add prefix version to the route
+ */
+app.get("/health",(req,res)=>{
+  return res.status(200).json("Healthy");
+})
 
 /**
  * Add prefix version to the route

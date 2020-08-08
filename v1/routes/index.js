@@ -42,28 +42,6 @@ routes.use("/order", auth, customer,territory, orderRouter);
 routes.use("/cart", auth, customer,territory, cartRouter);
 routes.use("/collection", auth, customer, territory, collectionRouter);
 routes.use("/data", auth, dataRouter);
-//Swagger
-/**
- * @swagger
- * /health:
- *    get:
- *      summary: Check if endpoint working
- *      parameters:
- *        - $ref: '#/parameters/CommonPathParameterHeader'
- *      tags:
- *        - apihealth
- *      responses:
- *          200:
- *            schema:
- *              type: object
- *              properties:
- *                message:
- *                  type: string
- */
-
-routes.get("/health", function (req, res) {
-  return res.status(200).json("Healthy");
-});
 
 /**
  * Module returns
