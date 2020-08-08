@@ -19,7 +19,6 @@ async function getSkus(req, res) {
     let territoriesArray = [];
     let filterQuery = {};
     let territoryQuery = {};
-    let unselectQuery = {}
 
     const groupQuery = {
       _id: "$_id",
@@ -41,13 +40,11 @@ async function getSkus(req, res) {
     //map territories obj array to string array
     territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
 
-    
-    if (req.customer){
-      unselectQuery = {
-        "price.purchaseprice": 0,
-        "inventory.purchaseprice": 0,
-      };
-    }
+    //unselect purchase prices
+    const unselectQuery = {
+      "price.purchaseprice": 0,
+      "inventory.purchaseprice": 0,
+    };
 
     //assign territory query if territories
     if ((territoriesArray.length > 0) && req.customer) {
