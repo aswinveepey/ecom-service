@@ -5,10 +5,16 @@ const mongoose = require("mongoose");
 
 async function getAllBrands(req, res) {
   try {
+    const { tenantId } = req.query;
+    const dbConnection = await global.clientConnection;
+    const db = await dbConnection.useDb(tenantId);
+    const brandModel = await db.model("Brand");
+
     brands = await brandModel.find().lean().limit(250);
     return res.json({ data: brands });
+
   } catch (error) {
-    return res.status(400).json({ message: error });
+    return res.status(400).json({ error: error.message });
   }
 }
 
