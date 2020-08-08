@@ -94,6 +94,7 @@ async function customerOrderhistory(req, res) {
     auth = req.auth._id;
     const db = req.db;
     const customerModel = await db.model("Customer");
+    const orderModel = await db.model("Order");
 
     customer = await customerModel.findOne({ auth: auth._id });
     if(!customer) throw new Error("Customer Not Found")
