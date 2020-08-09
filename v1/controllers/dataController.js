@@ -101,16 +101,7 @@ async function getGmvTimeSeries(req, res){
     const orderModel = await db.model("Order");
     
     monthGmv = await orderModel.aggregate([
-      // First Stage - match based on query params
-      // {
-      //   $match: {
-      //     date: {
-      //       $gte: new ISODate("2014-01-01"),
-      //       $lt: new ISODate("2015-01-01"),
-      //     },
-      //   },
-      // },
-      // Second Stage - Group based on created at
+      // FIrst Stage - Group based on created at
       {
         $group: {
           _id: {
@@ -123,7 +114,7 @@ async function getGmvTimeSeries(req, res){
           total: { $sum: "$amount.totalamount" },
         },
       },
-      // Third Stage - Sort by _id (created at)
+      // Second Stage Stage - Sort by _id (created at)
       {
         $sort: { _id: 1 },
       },
@@ -160,7 +151,7 @@ async function orderItemDataDump(req, res){
       {
         $project: {
           _id: 0,
-          orderid: "$shortid",
+          itemorderid: "$shortid",
           orderitemid: "$orderitems.shortid",
           customerid: "$customer.customer.shortid",
           customername: {
@@ -178,30 +169,30 @@ async function orderItemDataDump(req, res){
               "$orderitems.sku.name",
             ],
           },
-          categoryid: "$orderitems.sku.product.category",
-          brandid: "$orderitems.sku.product.brand",
-          mrp: "$orderitems.sku.price.mrp",
-          discount: "$orderitems.sku.price.discount",
-          sellingprice: "$orderitems.sku.price.sellingprice",
-          purchaseprice: "$orderitems.sku.price.purchaseprice",
-          shippingcharges: "$orderitems.sku.price.shippingcharges",
-          installationcharges: "$orderitems.sku.price.installationcharges",
-          bulkthreshold: "$orderitems.sku.bulkdiscount.threshold",
-          bulkdiscount: "$orderitems.sku.bulkdiscount.discount",
-          minorderqty: "$orderitems.sku.quantityrules.minorderqty",
-          minorderqtymultiples: "$orderitems.sku.quantityrules.minorderqtystep",
-          maxorderqty: "$orderitems.sku.quantityrules.maxorderqty",
-          quantitybooked: "$orderitems.quantity.booked",
-          quantityconfirmed: "$orderitems.quantity.confirmed",
-          quantityshipped: "$orderitems.quantity.shipped",
-          quantitydelivered: "$orderitems.quantity.delivered",
-          quantityreturned: "$orderitems.quantity.returned",
-          territoryid: "$orderitems.quantity.territory",
-          amount: "$orderitems.amount.amount",
-          discount: "$orderitems.amount.discount",
-          totalamount: "$orderitems.amount.totalamount",
-          status: "$orderitems.status",
-          orderdate: "$orderitems.orderdate",
+          skucategoryid: "$orderitems.sku.product.category",
+          skubrandid: "$orderitems.sku.product.brand",
+          skumrp: "$orderitems.sku.price.mrp",
+          skudiscount: "$orderitems.sku.price.discount",
+          skusellingprice: "$orderitems.sku.price.sellingprice",
+          skupurchaseprice: "$orderitems.sku.price.purchaseprice",
+          skushippingcharges: "$orderitems.sku.price.shippingcharges",
+          skuinstallationcharges: "$orderitems.sku.price.installationcharges",
+          skubulkthreshold: "$orderitems.sku.bulkdiscount.threshold",
+          skubulkdiscount: "$orderitems.sku.bulkdiscount.discount",
+          skuminorderqty: "$orderitems.sku.quantityrules.minorderqty",
+          skuminorderqtymultiples: "$orderitems.sku.quantityrules.minorderqtystep",
+          skumaxorderqty: "$orderitems.sku.quantityrules.maxorderqty",
+          itemquantitybooked: "$orderitems.quantity.booked",
+          itemquantityconfirmed: "$orderitems.quantity.confirmed",
+          itemquantityshipped: "$orderitems.quantity.shipped",
+          itemquantitydelivered: "$orderitems.quantity.delivered",
+          itemquantityreturned: "$orderitems.quantity.returned",
+          itemterritoryid: "$orderitems.quantity.territory",
+          itemamount: "$orderitems.amount.amount",
+          itemdiscount: "$orderitems.amount.discount",
+          itemtotalamount: "$orderitems.amount.totalamount",
+          itemstatus: "$orderitems.status",
+          itemorderdate: "$orderitems.orderdate",
         },
       },
     ]);
@@ -240,7 +231,7 @@ async function customerDataDump(req, res){
       {
         $project: {
           _id: 0,
-          customerid: "shortid",
+          customerid: "$shortid",
           accountid: "$account._id",
           firstname: "$firstname",
           lastname: "$lastname",

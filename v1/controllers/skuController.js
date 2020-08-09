@@ -240,10 +240,14 @@ async function createSku(req, res) {
       return res.status(400).json({ message: "Invalid product ID" });
     }
     inventory.forEach((data) => {
-      if (!mongoose.Types.ObjectId.isValid(data.territory._id)) {
+      if (
+        !mongoose.Types.ObjectId.isValid(
+          data.territory._id ? data.territory._id : data.territory
+        )
+      ) {
         return res.status(400).json({ message: "Invalid Territory ID" });
       }
-      data.territory = data.territory._id;
+      data.territory = data.territory._id ? data.territory._id : data.territory;
     });
 
     sku = await skuModel.create({
@@ -258,7 +262,7 @@ async function createSku(req, res) {
       bulkdiscount: bulkdiscount,
     });
 
-    return res.json({ data: sku });
+    return res.json({ data: sku, message:"Succesfully created sku" });
 
   } catch (error) {
     console.log(error);
@@ -284,17 +288,23 @@ async function updateSku(req, res) {
     const skuModel = await db.model("Sku");
 
     user = req.user;
+    //loop through inventory and set territory data per model
     inventory.forEach((data) => {
-      if (!mongoose.Types.ObjectId.isValid(data.territory._id)) {
-        return res.status(400).json({ message: "Invalid Territory ID" });
+      if (
+        !mongoose.Types.ObjectId.isValid(
+          data.territory?._id
+        )
+      ) {
+        console.log(data.territory)
+        throw new Error("Invalid Territory ID");
       }
-      data.territory = data.territory._id;
+      data.territory = data.territory?._id;
     });
     if (!mongoose.Types.ObjectId.isValid(_id)) {
-      return res.status(400).json({ message: "Invalid SKU ID" });
+      throw new Error("Invalid SKU ID");
     }
     if (!mongoose.Types.ObjectId.isValid(product._id)) {
-      return res.status(400).json({ message: "Invalid product ID" });
+      throw new Error("Invalid product ID");
     }
     sku = await skuModel.findByIdAndUpdate(
       mongoose.Types.ObjectId(_id),
@@ -317,7 +327,7 @@ async function updateSku(req, res) {
       },
       { new: true }
     );
-    return res.json(sku);
+    return res.json({ data: sku , message:"Succesfully updated sku"});
   } catch (err) {
     console.log(err);
     return res.status(400).json({ error: err.message });
