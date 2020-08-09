@@ -127,7 +127,7 @@ async function getGmvTimeSeries(req, res){
     res.status(400).json({error:error.message})
   }
 }
-async function orderItemDataDump(req, res){
+async function getOrderItemDump(req, res){
   try {
     const db = req.db;
     const orderModel = await db.model("Order");
@@ -204,7 +204,7 @@ async function orderItemDataDump(req, res){
     res.status(400).json({error:error.message})
   }
 }
-async function customerDataDump(req, res){
+async function getCustomerDump(req, res){
   try {
     const db = req.db;
     const customerModel = await db.model("Customer");
@@ -259,10 +259,86 @@ async function customerDataDump(req, res){
   }
 }
 
+async function getInventoryDump(req, res) {
+  try {
+    const db = req.db;
+    const skuModel = await db.model("Sku");
+
+    const skus = await skuModel.aggregate([
+      {
+        $lookup: {
+          from: "products",
+          localField: "product",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      { $unwind: "$product" },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "product.category",
+          foreignField: "_id",
+          as: "product.category",
+        },
+      },
+      { $unwind: "$product.category" },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "product.brand",
+          foreignField: "_id",
+          as: "product.brand",
+        },
+      },
+      {
+        $unwind: { path: "$product.brand", preserveNullAndEmptyArrays: true },
+      },
+      { $unwind: "$inventory" },
+      {
+        $lookup: {
+          from: "territories",
+          localField: "inventory.territory",
+          foreignField: "_id",
+          as: "inventory.territory",
+        },
+      },
+      { $unwind: "$inventory.territory" },
+      {
+        $group: {
+          _id: "$inventory._id",
+          productid: { $first: "$product.shortid" },
+          productname: { $first: "$product.name" },
+          skuid: { $first: "$shortid" },
+          skuname: { $first: "$name" },
+          categoryname: { $first: "$product.category.name" },
+          brandname: { $first: "$product.brand.name" },
+          territoryid: { $first: "$inventory.territory._id" },
+          territoryname: { $first: "$inventory.territory.name" },
+          quantity: { $first: "$inventory.quantity" },
+          mrp: { $first: "$inventory.mrp" },
+          purchaseprice: { $first: "$inventory.purchaseprice" },
+          sellingprice: { $first: "$inventory.sellingprice" },
+          discount: { $first: "$inventory.discount" },
+          shippingcharges: { $first: "$inventory.shippingcharges" },
+          installationcharges: { $first: "$inventory.installationcharges" },
+          status: { $first: "$inventory.status" },
+        },
+      },
+    ]);
+
+    res.json({ data: skus });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getCustomerCount,
   getGmvdata,
   getGmvTimeSeries,
-  orderItemDataDump,
-  customerDataDump,
+  getOrderItemDump,
+  getCustomerDump,
+  getInventoryDump,
 };

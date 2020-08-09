@@ -6,7 +6,8 @@ const { user } = require("../middlewares/user");
 dataRouter.get("/customer", user, dataController.getCustomerCount);
 dataRouter.get("/gmvData", user, dataController.getGmvdata);
 dataRouter.get("/gmvTimeSeries", user, dataController.getGmvTimeSeries);
-dataRouter.get("/getOrderItemDump", user, dataController.orderItemDataDump);
-dataRouter.get("/getCustomerDump", user, dataController.customerDataDump);
+dataRouter.get("/getOrderItemDump", user, dataController.getOrderItemDump);
+dataRouter.get("/getCustomerDump", user, dataController.getCustomerDump);
+dataRouter.get("/getInventoryDump", user, dataController.getInventoryDump);
 
 module.exports = { dataRouter };
