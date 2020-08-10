@@ -115,7 +115,7 @@ async function selfUpdateCustomer(req, res) {
     const db = req.db;
     const customerModel = await db.model("Customer");
 
-    const customer = req.customer
+    let customer = req.customer
     currentaddressindex = currentaddressindex || 0;
 
     if(!customer) res.status(401).json({message: "Invalid Customer"})
