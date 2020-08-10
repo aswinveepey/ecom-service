@@ -186,10 +186,10 @@ async function checkout(req, res) {
         payment: payments,
         orderitems: orderitems,
       })
-      .catch((err) => {
-        console.log(err);
-        return res.status(400).json({ error: err.message });
-      });
+      // .catch((err) => {
+      //   console.log(err);
+      //   return res.status(400).json({ error: err.message });
+      // });
     if(order){
       cart.cartitems = [];
       cart.save();

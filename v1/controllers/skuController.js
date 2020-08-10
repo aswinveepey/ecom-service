@@ -119,8 +119,12 @@ async function getSkus(req, res) {
 async function getOneSku(req, res) {
   try {
     const { skuId } = req.params;
+    const auth_id = req.auth?._id;
     const db = req.db;
     const skuModel = await db.model("Sku");
+    const userModel = await db.model("User");
+
+    const user = await userModel.findOne({ auth: auth_id });
 
     const territories = req.territories;
     let territoriesArray = [];
@@ -153,13 +157,22 @@ async function getOneSku(req, res) {
     territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
 
     //assign territory query if territories
-    if ((territoriesArray.length > 0) && req.customer) {
+    if (territoriesArray.length > 0) {
       territoryQuery = { "inventory.territory": { $in: territoriesArray } };
     }
 
     //get sku
-    if(req.customer){
+    if(user){
 
+      skus[0] = await skuModel
+        .findById(skuId)
+        .populate("product")
+        .populate("product.category")
+        .populate("product.brand")
+        .populate({ path: "inventory.territory", select: "name" })
+        .lean();;
+
+    } else {
       skus = await skuModel.aggregate([
         { $unwind: "$inventory" },
         {
@@ -201,14 +214,6 @@ async function getOneSku(req, res) {
         { $project: unselectQuery },
         { $group: groupQuery },
       ]);
-
-    } else{
-
-      skus[0] = await skuModel
-        .findById(skuId)
-        .populate("product")
-        .populate({ path: "inventory.territory", select: "name" })
-        .lean();;
 
     }
     //return first instance

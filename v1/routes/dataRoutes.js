@@ -10,6 +10,6 @@ dataRouter.get("/gmvTimeSeries", user, dataController.getGmvTimeSeries);
 dataRouter.get("/getOrderItemDump", user, dataController.getOrderItemDump);
 dataRouter.get("/getCustomerDump", user, dataController.getCustomerDump);
 dataRouter.get("/getInventoryDump", user, dataController.getInventoryDump);
-dataRouter.get("/bulkUpadteInventory", user, bulkuploadController.bulkUploadInventory);
+dataRouter.get("/bulkUploadInventory", user, bulkuploadController.bulkUploadInventory);
 
 module.exports = { dataRouter };
