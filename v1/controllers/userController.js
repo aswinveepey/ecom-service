@@ -57,6 +57,8 @@ async function createUser(req, res) {
       divisions,
       territories,
     } = req.body;
+
+    console.log(req.body);
     const db = req.db;
 
     const userModel = await db.model("User");

@@ -119,12 +119,8 @@ async function getSkus(req, res) {
 async function getOneSku(req, res) {
   try {
     const { skuId } = req.params;
-    const auth_id = req.auth?._id;
     const db = req.db;
     const skuModel = await db.model("Sku");
-    const userModel = await db.model("User");
-
-    const user = await userModel.findOne({ auth: auth_id });
 
     const territories = req.territories;
     let territoriesArray = [];
@@ -161,63 +157,71 @@ async function getOneSku(req, res) {
       territoryQuery = { "inventory.territory": { $in: territoriesArray } };
     }
 
-    //get sku
-    if(user){
+    skus = await skuModel.aggregate([
+      { $unwind: "$inventory" },
+      {
+        $match: {
+          //returns colleciton based on queries - does not filter the inventory
+          $and: [
+            { _id: mongoose.Types.ObjectId(skuId) },
+            territoryQuery,
+            { "inventory.status": true },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "product",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      { $unwind: "$product" }, //array of unwind queries
+      {
+        $lookup: {
+          from: "brands",
+          localField: "product.brand",
+          foreignField: "_id",
+          as: "product.brand",
+        },
+      },
+      { $unwind: "$product.brand" }, //array of unwind queries
+      {
+        $lookup: {
+          from: "skus",
+          localField: "product._id",
+          foreignField: "product",
+          as: "product.skus",
+        },
+      },
+      { $project: unselectQuery },
+      { $group: groupQuery },
+    ]);
+    //return first instance
+    return res.json({ data: skus[0] });
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({ error: error.message });
+  }
+}
 
-      skus[0] = await skuModel
+//end point for backend operations - had to be seperated due to conflict with app endpoint
+async function getSku(req, res) {
+  try {
+    const { skuId } = req.params;
+    const db = req.db;
+    const skuModel = await db.model("Sku");
+
+    sku = await skuModel
         .findById(skuId)
         .populate("product")
         .populate("product.category")
         .populate("product.brand")
         .populate({ path: "inventory.territory", select: "name" })
         .lean();;
-
-    } else {
-      skus = await skuModel.aggregate([
-        { $unwind: "$inventory" },
-        {
-          $match: {
-            //returns colleciton based on queries - does not filter the inventory
-            $and: [
-              { _id: mongoose.Types.ObjectId(skuId) },
-              territoryQuery,
-              { "inventory.status": true },
-            ],
-          },
-        },
-        {
-          $lookup: {
-            from: "products",
-            localField: "product",
-            foreignField: "_id",
-            as: "product",
-          },
-        },
-        { $unwind: "$product" }, //array of unwind queries
-        {
-          $lookup: {
-            from: "brands",
-            localField: "product.brand",
-            foreignField: "_id",
-            as: "product.brand",
-          },
-        },
-        { $unwind: "$product.brand" }, //array of unwind queries
-        {
-          $lookup: {
-            from: "skus",
-            localField: "product._id",
-            foreignField: "product",
-            as: "product.skus",
-          },
-        },
-        { $project: unselectQuery },
-        { $group: groupQuery },
-      ]);
-
-    }
     //return first instance
-    return res.json({ data: skus[0] });
+    return res.json({ data: sku });
   } catch (error) {
     console.log(error)
     return res.status(400).json({ error: error.message });
@@ -375,4 +379,5 @@ module.exports = {
   getOneSku,
   updateSku,
   searchSku,
+  getSku,
 };

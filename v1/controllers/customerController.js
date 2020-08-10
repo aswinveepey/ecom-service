@@ -77,7 +77,9 @@ async function registerCustomer(req, res) {
 
     var customer;
     auth = req.auth
-    if(!auth) {throw new Error("Issue verifying auth token")}
+
+    if(!auth) throw new Error("Issue verifying auth token");
+    
     //create customer
     await customerModel
       .create({
@@ -118,7 +120,7 @@ async function selfUpdateCustomer(req, res) {
     let customer = req.customer
     currentaddressindex = currentaddressindex || 0;
 
-    if(!customer) res.status(401).json({message: "Invalid Customer"})
+    if(!customer) throw new Error("Invalid Customer")
 
     //create customer
     await customerModel
