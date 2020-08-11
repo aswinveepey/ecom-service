@@ -30,33 +30,40 @@ const skuSchema = mongoose.Schema({
         type: mongoose.Schema.Types.Number,
         required: true,
         default: 0,
+        min: 0,
       },
       mrp: {
         type: Double,
         required: true,
+        min: 0,
       },
       discount: {
         type: Double,
         required: true,
         default: 0,
+        min: 0,
       },
       sellingprice: {
         type: Double,
         required: true,
+        min: 0,
       },
       purchaseprice: {
         type: Double,
         required: true,
+        min: 0,
       },
       shippingcharges: {
         type: Double,
         required: true,
         default: 0,
+        min: 0,
       },
       installationcharges: {
         type: Double,
         required: true,
         default: 0,
+        min: 0,
       },
       status: {
         type: Boolean,
@@ -101,29 +108,35 @@ const skuSchema = mongoose.Schema({
     mrp: {
       type: Double,
       required: true,
+      min: 0,
     },
     discount: {
       type: Double,
       required: true,
       default: 0,
+      min: 0,
     },
     sellingprice: {
       type: Double,
       required: true,
+      min: 0,
     },
     purchaseprice: {
       type: Double,
       required: true,
+      min: 0,
     },
     shippingcharges: {
       type: Double,
       required: true,
       default: 0,
+      min: 0,
     },
     installationcharges: {
       type: Double,
       required: true,
       default: 0,
+      min: 0,
     },
   },
   bulkdiscount: {
@@ -131,11 +144,13 @@ const skuSchema = mongoose.Schema({
       type: mongoose.Schema.Types.Number,
       required: true,
       default: 0,
+      min: 0,
     },
     discount: {
       type: Double,
       required: true,
       default: 0,
+      min: 0,
     },
   },
   quantityrules: {
@@ -143,16 +158,19 @@ const skuSchema = mongoose.Schema({
       type: mongoose.Schema.Types.Number,
       required: true,
       default: 0,
+      min: 0,
     },
     minorderqtystep: {
       type: Boolean,
       required: true,
       default: true,
+      min: 0,
     },
     maxorderqty: {
       type: mongoose.Schema.Types.Number,
       required: true,
       default: 0,
+      min: 0,
     },
   },
   status: {
@@ -193,4 +211,4 @@ skuSchema.index(
 
 const skuModel = mongoose.model("Sku", skuSchema);
 
-module.exports = skuModel;
+module.exports = skuSchema;

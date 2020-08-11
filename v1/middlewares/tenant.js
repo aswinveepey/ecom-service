@@ -10,7 +10,7 @@ require("../models/order");
 require("../models/permission");
 require("../models/product");
 require("../models/role");
-require("../models/sku");
+// require("../models/sku");
 require("../models/territory");
 require("../models/user");
 

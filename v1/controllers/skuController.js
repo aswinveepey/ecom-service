@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-// const Sku = require("../models/sku");
+const skuSchema = require("../models/sku");
 // const Product = require("../models/product");
 const skuService = require("../services/skuService")
 
@@ -12,7 +12,7 @@ async function getSkus(req, res) {
     const { filterBy, filterValue } = req.query;
     const territories = req.territories;
     const db = req.db;
-    const skuModel = await db.model("Sku");
+    const skuModel = await db.model("Sku", skuSchema);
     
     //init variables
     let skus = [];
@@ -120,7 +120,7 @@ async function getOneSku(req, res) {
   try {
     const { skuId } = req.params;
     const db = req.db;
-    const skuModel = await db.model("Sku");
+    const skuModel = await db.model("Sku", skuSchema);
 
     const territories = req.territories;
     let territoriesArray = [];
@@ -211,7 +211,7 @@ async function getSku(req, res) {
   try {
     const { skuId } = req.params;
     const db = req.db;
-    const skuModel = await db.model("Sku");
+    const skuModel = await db.model("Sku", skuSchema);
 
     sku = await skuModel
         .findById(skuId)
@@ -242,13 +242,13 @@ async function createSku(req, res) {
       quantityrules,
     } = req.body;
     const db = req.db;
-    const skuModel = await db.model("Sku");
+    const skuModel = await db.model("Sku", skuSchema);
     user = req.user;
 
     if (!mongoose.Types.ObjectId.isValid(product)) {
       return res.status(400).json({ message: "Invalid product ID" });
     }
-    inventory.forEach((data) => {
+    inventory?.forEach((data) => {
       if (
         !mongoose.Types.ObjectId.isValid(
           data.territory._id ? data.territory._id : data.territory
@@ -262,7 +262,7 @@ async function createSku(req, res) {
     sku = await skuModel.create({
       name: name,
       product: product,
-      inventory: inventory,
+      inventory: inventory||[],
       assets: assets,
       attributes: attributes,
       dattributes: dattributes,
@@ -294,7 +294,7 @@ async function updateSku(req, res) {
       quantityrules,
     } = req.body;
     const db = req.db;
-    const skuModel = await db.model("Sku");
+    const skuModel = await db.model("Sku", skuSchema);
 
     user = req.user;
     //loop through inventory and set territory data per model
@@ -347,7 +347,7 @@ async function searchSku(req, res) {
   try {
     const { searchString } = req.body;
     const db = req.db;
-    const skuModel = await db.model("Sku");
+    const skuModel = await db.model("Sku", skuSchema);
 
     const skus = await skuModel.aggregate([
       {

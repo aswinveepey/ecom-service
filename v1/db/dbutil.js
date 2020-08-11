@@ -5,6 +5,7 @@ const clientOption = {
   // socketTimeoutMS: 30000,
   keepAlive: true,
   // reconnectTries: 30000,
+  autoIndex: true,
   poolSize: 50,
   useNewUrlParser: true,
   useCreateIndex: true,
@@ -13,9 +14,9 @@ const clientOption = {
 const initClientDbConnection = () => {
   const db = mongoose.createConnection(process.env.MONGODB_URL, clientOption);
 
-  db.on("error", console.error.bind(console, "DB Connection Error>> : "));
+  db.on("error", console.error.bind(console, "DB Connection Error : "));
   db.once("open", function () {
-    console.log("client MongoDB Connection ok!");
+    console.log("MongoDB Connection ok");
   });
   return db;
 };

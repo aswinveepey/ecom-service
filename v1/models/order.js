@@ -131,31 +131,38 @@ const orderSchema = mongoose.Schema({
             quantity: {
               type: mongoose.Schema.Types.Number,
               required: true,
+              min: 0,
             },
             mrp: {
               type: Double,
               required: true,
+              min: 0,
             },
             discount: {
               type: Double,
               required: true,
               default: 0,
+              min: 0,
             },
             sellingprice: {
               type: Double,
               required: true,
+              min: 0,
             },
             purchaseprice: {
               type: Double,
               required: true,
+              min: 0,
             },
             shippingcharges: {
               type: Double,
               required: true,
+              min: 0,
             },
             installationcharges: {
               type: Double,
               required: true,
+              min: 0,
             },
             status: {
               type: Boolean,
@@ -197,42 +204,51 @@ const orderSchema = mongoose.Schema({
           mrp: {
             type: Double,
             required: true,
+            min: 0,
           },
           discount: {
             type: Double,
             required: true,
+            min: 0,
           },
           sellingprice: {
             type: Double,
             required: true,
+            min: 0,
           },
           purchaseprice: {
             type: Double,
             required: true,
+            min: 0,
           },
           shippingcharges: {
             type: Double,
             required: true,
+            min: 0,
           },
           installationcharges: {
             type: Double,
             required: true,
+            min: 0,
           },
         },
         bulkdiscount: {
           threshold: {
             type: mongoose.Schema.Types.Number,
             required: true,
+            min: 0,
           },
           discount: {
             type: Double,
             required: true,
+            min: 0,
           },
         },
         quantityrules: {
           minorderqty: {
             type: mongoose.Schema.Types.Number,
             required: true,
+            min: 0,
           },
           minorderqtystep: {
             type: Boolean,
@@ -241,6 +257,7 @@ const orderSchema = mongoose.Schema({
           maxorderqty: {
             type: mongoose.Schema.Types.Number,
             required: true,
+            min: 0,
           },
         },
         status: {
@@ -252,24 +269,29 @@ const orderSchema = mongoose.Schema({
         booked: {
           type: mongoose.Schema.Types.Number,
           required: true,
+          min: 0,
         },
         confirmed: {
           type: mongoose.Schema.Types.Number,
+          min: 0,
         },
         shipped: {
           type: mongoose.Schema.Types.Number,
+          min: 0,
         },
         delivered: {
           type: mongoose.Schema.Types.Number,
+          min: 0,
         },
         returned: {
           type: mongoose.Schema.Types.Number,
+          min: 0,
         },
         territory: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Territory",
           required: true,
-        }
+        },
       },
       amount: {
         amount: {
