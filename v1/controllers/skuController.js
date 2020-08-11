@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const skuSchema = require("../models/sku");
+// const skuSchema = require("../models/sku");
 // const Product = require("../models/product");
 const skuService = require("../services/skuService")
 
@@ -12,7 +12,7 @@ async function getSkus(req, res) {
     const { filterBy, filterValue } = req.query;
     const territories = req.territories;
     const db = req.db;
-    const skuModel = await db.model("Sku", skuSchema);
+    const skuModel = await db.model("Sku");
     
     //init variables
     let skus = [];
@@ -120,7 +120,7 @@ async function getOneSku(req, res) {
   try {
     const { skuId } = req.params;
     const db = req.db;
-    const skuModel = await db.model("Sku", skuSchema);
+    const skuModel = await db.model("Sku");
 
     const territories = req.territories;
     let territoriesArray = [];
@@ -211,7 +211,7 @@ async function getSku(req, res) {
   try {
     const { skuId } = req.params;
     const db = req.db;
-    const skuModel = await db.model("Sku", skuSchema);
+    const skuModel = await db.model("Sku");
 
     sku = await skuModel
         .findById(skuId)
@@ -242,7 +242,7 @@ async function createSku(req, res) {
       quantityrules,
     } = req.body;
     const db = req.db;
-    const skuModel = await db.model("Sku", skuSchema);
+    const skuModel = await db.model("Sku");
     user = req.user;
 
     if (!mongoose.Types.ObjectId.isValid(product)) {
@@ -294,7 +294,7 @@ async function updateSku(req, res) {
       quantityrules,
     } = req.body;
     const db = req.db;
-    const skuModel = await db.model("Sku", skuSchema);
+    const skuModel = await db.model("Sku");
 
     user = req.user;
     //loop through inventory and set territory data per model
@@ -347,7 +347,7 @@ async function searchSku(req, res) {
   try {
     const { searchString } = req.body;
     const db = req.db;
-    const skuModel = await db.model("Sku", skuSchema);
+    const skuModel = await db.model("Sku");
 
     const skus = await skuModel.aggregate([
       {

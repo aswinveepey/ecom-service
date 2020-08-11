@@ -1,4 +1,19 @@
 const mongoose = require("mongoose");
+require("../models/account");
+require("../models/auth");
+require("../models/brand");
+require("../models/cart");
+require("../models/category");
+require("../models/collection");
+require("../models/customer");
+require("../models/division");
+require("../models/order");
+require("../models/permission");
+require("../models/product");
+require("../models/role");
+require("../models/sku");
+require("../models/territory");
+require("../models/user");
 
 const clientOption = {
   useUnifiedTopology: true,

@@ -211,4 +211,4 @@ skuSchema.index(
 
 const skuModel = mongoose.model("Sku", skuSchema);
 
-module.exports = skuSchema;
+module.exports = skuModel;

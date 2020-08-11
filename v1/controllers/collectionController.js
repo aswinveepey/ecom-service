@@ -21,7 +21,10 @@ async function getOneCollection(req, res) {
     const db = req.db;
     const collectionModel = await db.model("Collection");
 
-    const collection = await collectionModel.findById(collectionId).lean();
+    const collection = await collectionModel
+      .findById(collectionId)
+      .populate("items")
+      .lean();
     return res.json({ data: collection });
 
   } catch (error) {
