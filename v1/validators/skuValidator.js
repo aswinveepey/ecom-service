@@ -15,6 +15,7 @@ const validateSku = [
     .optional({ nullable: true })
     .isFloat({ min: 0 }),
   check("inventory.*.mrp").exists().isFloat({ min: 0 }),
+  check("inventory.*.quantity").exists().isInt({ min: 0 }),
   check("inventory.*.discount")
     .optional({ nullable: true })
     .isFloat({ min: 0 }),
@@ -26,6 +27,20 @@ const validateSku = [
   check("inventory.*.installationcharges")
     .optional({ nullable: true })
     .isFloat({ min: 0 }),
+  check("inventory.*status").optional({ nullable: true }).isBoolean(),
+  check("bulkdiscount.discount")
+    .optional({ nullable: true })
+    .isFloat({ min: 0 }),
+  check("bulkdiscount.threshold")
+    .optional({ nullable: true })
+    .isInt({ min: 0 }),
+  check("quantityrules.minorderqty")
+    .optional({ nullable: true })
+    .isInt({ min: 0 }),
+  check("quantityrules.maxorderqty")
+    .optional({ nullable: true })
+    .isInt({ min: 0 }),
+  check("status").optional({ nullable: true }).isBoolean(),
 ];
 
 module.exports = {
