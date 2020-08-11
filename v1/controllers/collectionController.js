@@ -22,8 +22,8 @@ async function getOneCollection(req, res) {
     const collectionModel = await db.model("Collection");
 
     const collection = await collectionModel
-      .findById(collectionId)
-      .populate("items")
+      .find({ _id: collectionId, status:true })
+      .populate({ path: "items", populate: { path: "product" } })
       .lean();
     return res.json({ data: collection });
 
