@@ -27,12 +27,22 @@ const clientOption = {
 };
 
 const initClientDbConnection = () => {
-  const db = mongoose.createConnection(process.env.MONGODB_URL, clientOption);
+  const db = mongoose.createConnection(process.env.MONGODB_URL, clientOption)
+    // .then(() => console.log("MongoDB Connection ok"))
+    // .catch((err) => {
+    //   console.error.bind(console, "DB Connection Error : ");
+    //   process.exit();
+    // });
 
-  db.on("error", console.error.bind(console, "DB Connection Error : "));
+  db.on(
+    "error",
+    console.error.bind(console, "DB Connection Error : "),
+  );
+
   db.once("open", function () {
     console.log("MongoDB Connection ok");
   });
+
   return db;
 };
 

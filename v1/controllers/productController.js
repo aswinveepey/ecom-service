@@ -139,12 +139,12 @@ async function searchProduct(req, res) {
     const db = req.db;
     const productModel = await db.model("Product");
 
-    const products = productModel.aggregate([
+    const products = await productModel.aggregate([
       { $match: { $text: { $search: searchString } } },
       { $limit: 5 },
       {
         $lookup: {
-          from: "category",
+          from: "categories",
           localField: "category",
           foreignField: "_id",
           as: "category",
@@ -153,7 +153,7 @@ async function searchProduct(req, res) {
       { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
-          from: "brand",
+          from: "brands",
           localField: "brand",
           foreignField: "_id",
           as: "brand",
@@ -162,7 +162,7 @@ async function searchProduct(req, res) {
       { $unwind: { path: "$brand", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
-          from: "sku",
+          from: "skus",
           localField: "_id",
           foreignField: "product",
           as: "skus",
