@@ -4,6 +4,7 @@ const { check } = require("express-validator");
  */
 
 const validateSku = [
+  check("name").exists(),
   check("price.mrp").exists().isFloat({ min: 0 }),
   check("price.discount").optional({ nullable: true }).isFloat({ min: 0 }),
   check("price.sellingprice").exists().isFloat({ min: 0 }),

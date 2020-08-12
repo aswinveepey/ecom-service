@@ -64,9 +64,11 @@ const productSchema = mongoose.Schema({
         type: String,
         unique: true,
       },
-      values: [{
-        type: String,
-      }],
+      values: [
+        {
+          type: String,
+        },
+      ],
     },
   ],
   storage: {
@@ -94,14 +96,17 @@ const productSchema = mongoose.Schema({
     cgst: {
       type: Double,
       required: true,
+      default: 0,
     },
     sgst: {
       type: Double,
       required: true,
+      default: 0,
     },
     igst: {
       type: Double,
       required: true,
+      default: 0,
     },
   },
   createdat: {
