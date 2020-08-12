@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 async function bulkUploadInventory(req, res){
   try {
-    console.log(req.body["Inventory ID"]);
     const inventoryId = mongoose.Types.ObjectId(req.body["Inventory ID"]);
     const territoryId = mongoose.Types.ObjectId(req.body["Territory ID"]);
     const skuId = req.body["SKU ID"];
@@ -18,7 +17,23 @@ async function bulkUploadInventory(req, res){
     const db = req.db;
     const skuModel = await db.model("Sku");
 
-    sku = await skuModel.findOne({shortid:skuId})
+    console.log(mrp)
+    sku = await skuModel.updateOne(
+      { shortid: skuId, "inventory._id": inventoryId },
+      {
+        $set: {
+          "inventory.$.mrp": mrp,
+          "inventory.$.territoryId": mongoose.Types.ObjectId(territoryId),
+          "inventory.$.quantity": quantity,
+          "inventory.$.purchaseprice": purchaseprice,
+          "inventory.$.sellingprice": sellingprice,
+          "inventory.$.discount": discount,
+          "inventory.$.shipping": shipping,
+          "inventory.$.installation": installation,
+          "inventory.$.status": status,
+        },
+      }
+    );
 
     // console.log(req.body)
     return res.json({ data: sku });

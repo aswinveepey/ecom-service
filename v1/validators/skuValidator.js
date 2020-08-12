@@ -27,7 +27,7 @@ const validateSku = [
   check("inventory.*.installationcharges")
     .optional({ nullable: true })
     .isFloat({ min: 0 }),
-  check("inventory.*status").optional({ nullable: true }).isBoolean(),
+  check("inventory.*.status").optional({ nullable: true }).isBoolean(),
   check("bulkdiscount.discount")
     .optional({ nullable: true })
     .isFloat({ min: 0 }),
