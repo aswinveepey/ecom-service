@@ -16,24 +16,45 @@ async function bulkUploadInventory(req, res){
 
     const db = req.db;
     const skuModel = await db.model("Sku");
+    let sku;
 
-    console.log(mrp)
-    sku = await skuModel.updateOne(
-      { shortid: skuId, "inventory._id": inventoryId },
-      {
-        $set: {
-          "inventory.$.mrp": mrp,
-          // "inventory.$.territoryId": mongoose.Types.ObjectId(territoryId),
-          "inventory.$.quantity": quantity,
-          "inventory.$.purchaseprice": purchaseprice,
-          "inventory.$.sellingprice": sellingprice,
-          "inventory.$.discount": discount,
-          "inventory.$.shipping": shipping,
-          "inventory.$.installation": installation,
-          "inventory.$.status": status,
-        },
-      }
-    );
+    if(inventoryId){
+      sku = await skuModel.updateOne(
+        { shortid: skuId, "inventory._id": inventoryId },
+        {
+          $set: {
+            "inventory.$.mrp": mrp,
+            // "inventory.$.territoryId": mongoose.Types.ObjectId(territoryId),
+            "inventory.$.quantity": quantity,
+            "inventory.$.purchaseprice": purchaseprice,
+            "inventory.$.sellingprice": sellingprice,
+            "inventory.$.discount": discount,
+            "inventory.$.shipping": shipping,
+            "inventory.$.installation": installation,
+            "inventory.$.status": status,
+          },
+        }
+      );
+    } else {
+      sku = await skuModel.updateOne(
+        { shortid: skuId },
+        {
+          $push: {
+            inventory: {
+              mrp: mrp,
+              territory: mongoose.Types.ObjectId(territoryId),
+              quantity: quantity,
+              purchaseprice: purchaseprice,
+              sellingprice: sellingprice,
+              discount: discount,
+              shipping: shipping,
+              installation: installation,
+              status: status,
+            },
+          },
+        }
+      );
+    }
 
     // console.log(req.body)
     return res.json({ data: sku });
