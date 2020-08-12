@@ -4,7 +4,10 @@ const dataController = require("../controllers/dataController");
 const bulkdownloadController = require("../controllers/bulkDownloadController");
 const bulkuploadController = require("../controllers/bulkuploadController");
 const { user } = require("../middlewares/user");
-const { validateInventoryBulkUpload } = require("../validators/bulkUploadValidator");
+const {
+  validateInventoryBulkUpload,
+  validateSkuBulkUpload,
+} = require("../validators/bulkUploadValidator");
 const { validate } = require("../validators/validator");
 
 dataRouter.get("/customer", user, dataController.getCustomerCount);
@@ -25,16 +28,18 @@ dataRouter.get(
   user,
   bulkdownloadController.getInventoryDump
 );
-dataRouter.get(
-  "/getSkuDump",
-  user,
-  bulkdownloadController.getSkuDump
-);
+dataRouter.get("/getSkuDump", user, bulkdownloadController.getSkuDump);
 dataRouter.post(
   "/bulkUploadInventory",
   user,
   validate(validateInventoryBulkUpload),
   bulkuploadController.bulkUploadInventory
+);
+dataRouter.post(
+  "/bulkUploadSku",
+  user,
+  validate(validateSkuBulkUpload),
+  bulkuploadController.bulkUploadSku
 );
 
 module.exports = { dataRouter };

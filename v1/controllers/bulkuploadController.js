@@ -16,10 +16,9 @@ async function bulkUploadInventory(req, res){
 
     const db = req.db;
     const skuModel = await db.model("Sku");
-    let sku;
 
     if(inventoryId){
-      sku = await skuModel.updateOne(
+      await skuModel.updateOne(
         { shortid: skuId, "inventory._id": inventoryId },
         {
           $set: {
@@ -36,7 +35,7 @@ async function bulkUploadInventory(req, res){
         }
       );
     } else {
-      sku = await skuModel.updateOne(
+    await skuModel.updateOne(
         { shortid: skuId },
         {
           $push: {
@@ -57,13 +56,69 @@ async function bulkUploadInventory(req, res){
     }
 
     // console.log(req.body)
-    return res.json({ data: sku });
+    return res.json({ status: "succesful" });
   } catch (error) {
     //do not user error to correspond to error message - use message instead
+    return res.status(400).json({message:error.message})
+  }
+}
+async function bulkUploadSku(req, res){
+  try {
+    const skuId = req.body["SKU ID"];
+    const productId = req.body["Product ID"];
+    const skuName = req.body["SKU Name"];
+    const mrp = req.body["MRP"];
+    const discount = req.body["Discount"];
+    const sellingPrice = req.body["Selling Price"];
+    const purchasePrice = req.body["Purchase Price"];
+    const shipping = req.body["Shipping"];
+    const installation = req.body["Installation"];
+    const bulkThreshold = req.body["Bulk Discount Threshold"];
+    const bulkDiscount = req.body["Bulk Discount"];
+    const minOrderQty = req.body["Min Order Qty"];
+    const minOrderQtyStep = req.body["Min Order Qty Multiples"];
+    const maxOrderQty = req.body["Max Order Qty"];
+    const status = req.body["Status"];
+    
+    const db = req.db;
+    const skuModel = await db.model("Sku");
+    const productModel = await db.model("Product");
+    
+    const product = await productModel.findOne({shortid:productId}).lean()
+    
+    if(!product) throw new Error("Invalid Product")
+
+    await skuModel.updateOne(
+      { shortid: skuId },
+      {
+        name: skuName,
+        product: product._id,
+        "price.mrp": mrp,
+        "price.discount": discount,
+        "price.sellingprice": sellingPrice,
+        "price.purchaseprice": purchasePrice,
+        "price.shipping": shipping,
+        "price.installation": installation,
+        "bulkdiscount.threshold": bulkThreshold,
+        "bulkdiscount.discount": bulkDiscount,
+        "bulkdiscount.discount": bulkDiscount,
+        "quantityrules.minorderqty": minOrderQty,
+        "quantityrules.minorderqtystep": minOrderQtyStep,
+        "quantityrules.maxorderqty": maxOrderQty,
+        status: status,
+      },
+      { upsert: true }
+    );
+    
+    return res.json({ status: "succesful" });
+
+  } catch (error) {
+    console.log(error)
     return res.status(400).json({message:error.message})
   }
 }
 
 module.exports = {
   bulkUploadInventory,
+  bulkUploadSku,
 };

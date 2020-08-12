@@ -41,6 +41,9 @@ const validateSku = [
   check("quantityrules.maxorderqty")
     .optional({ nullable: true })
     .isInt({ min: 0 }),
+  check("quantityrules.minorderqtystep")
+    .optional({ nullable: true })
+    .isBoolean(),
   check("status").optional({ nullable: true }).isBoolean(),
 ];
 
