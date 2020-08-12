@@ -19,6 +19,8 @@ async function getSkus(req, res) {
     let territoriesArray = [];
     let filterQuery = {};
     let territoryQuery = {};
+    let statusFilter = {};
+    let inventoryStatusFilter = {};
 
     const groupQuery = {
       _id: "$_id",
@@ -47,8 +49,10 @@ async function getSkus(req, res) {
     };
 
     //assign territory query if territories
-    if ((territoriesArray.length > 0) && req.customer) {
+    if (req.customer) {
       territoryQuery = { "inventory.territory": { $in: territoriesArray } };
+      inventoryStatusFilter = { "inventory.status": true };
+      statusFilter= { "status": true };
     }
 
     //based on filter conditions update query
@@ -98,7 +102,12 @@ async function getSkus(req, res) {
       { $unwind: "$inventory" }, //inventory array to object
       {
         $match: {
-          $and: [filterQuery, territoryQuery, { "inventory.status": true }], //returns colleciton based on queries
+          $and: [
+            filterQuery,
+            territoryQuery,
+            statusFilter,
+            inventoryStatusFilter,
+          ], //returns colleciton based on queries
         },
       },
       {
@@ -153,9 +162,10 @@ async function getOneSku(req, res) {
     territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
 
     //assign territory query if territories
-    if (territoriesArray.length > 0) {
-      territoryQuery = { "inventory.territory": { $in: territoriesArray } };
-    }
+    territoryQuery = { "inventory.territory": { $in: territoriesArray } };
+    // if (territoriesArray.length > 0) {
+      
+    // }
 
     skus = await skuModel.aggregate([
       { $unwind: "$inventory" },
@@ -292,6 +302,7 @@ async function updateSku(req, res) {
       price,
       bulkdiscount,
       quantityrules,
+      status
     } = req.body;
     const db = req.db;
     const skuModel = await db.model("Sku");
@@ -328,6 +339,7 @@ async function updateSku(req, res) {
           price: price,
           quantityrules: quantityrules,
           bulkdiscount: bulkdiscount,
+          status: status,
         },
         $push: {
           updatelog: { updatedby: user._id },

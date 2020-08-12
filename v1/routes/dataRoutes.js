@@ -25,6 +25,11 @@ dataRouter.get(
   user,
   bulkdownloadController.getInventoryDump
 );
+dataRouter.get(
+  "/getSkuDump",
+  user,
+  bulkdownloadController.getSkuDump
+);
 dataRouter.post(
   "/bulkUploadInventory",
   user,

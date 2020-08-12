@@ -277,4 +277,5 @@ module.exports = {
   getOrderItemDump,
   getCustomerDump,
   getInventoryDump,
+  getSkuDump,
 };
