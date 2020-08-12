@@ -18,13 +18,79 @@ async function getCollections(req, res) {
 async function getOneCollection(req, res) {
   try {
     const { collectionId } = req.params;
+    const territories = req.territories;
     const db = req.db;
     const collectionModel = await db.model("Collection");
+    const categoryModel = await db.model("Category");
+    const skuModel = await db.model("Sku");
 
-    const collection = await collectionModel
-      .find({ _id: collectionId, status:true })
-      .populate({ path: "items", populate: { path: "product" } })
+    let collection = await collectionModel
+      .findOne({ _id: collectionId, status: true })
       .lean();
+
+    if (collection.type === "Category"){
+
+      const categories = await categoryModel.find({_id:{$in:collection.items}}).lean()
+      collection.categories = categories
+
+    } else {
+
+      //map territories obj array to string array
+      const territoriesArray = territories?.map((t) => mongoose.Types.ObjectId(t._id));
+      //unselect purchase prices
+      const unselectQuery = {
+        "price.purchaseprice": 0,
+        "inventory.purchaseprice": 0,
+      };
+      const territoryQuery = { "inventory.territory": { $in: territoriesArray } };
+      const inventoryStatusFilter = { "inventory.status": true };
+      const statusFilter = { status: true };
+      const groupQuery = {
+        _id: "$_id",
+        shortid: { $first: "$shortid" },
+        name: { $first: "$name" },
+        product: { $first: "$product" },
+        assets: { $first: "$assets" },
+        attributes: { $first: "$attributes" },
+        dattributes: { $first: "$dattributes" },
+        price: { $first: "$price" },
+        bulkdiscount: { $first: "$bulkdiscount" },
+        quantityrules: { $first: "$quantityrules" },
+        status: { $first: "$status" },
+        createdat: { $first: "$createdat" },
+        updatelog: { $first: "$updatelog" },
+        inventory: { $first: "$inventory" },
+      };
+      const skus = await skuModel.aggregate([
+        {
+          $lookup: {
+            from: "products",
+            localField: "product",
+            foreignField: "_id",
+            as: "product",
+          },
+        },
+        { $unwind: "$product" }, //product array to object
+        { $unwind: "$inventory" }, //inventory array to object
+        {
+          $match: {
+            $and: [
+              territoryQuery,
+              statusFilter,
+              inventoryStatusFilter,
+            ], //returns colleciton based on queries
+          },
+        },
+        {
+          $project: unselectQuery, //hide purchase prices for customer
+        },
+        { $group: groupQuery },
+        { $limit: 50 },
+      ]);
+
+      //append skus to collection object
+      collection.skus = skus
+    }
     return res.json({ data: collection });
 
   } catch (error) {

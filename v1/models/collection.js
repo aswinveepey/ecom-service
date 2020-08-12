@@ -56,6 +56,15 @@ const collectionSchema = mongoose.Schema({
   },
 });
 
+collectionSchema.index(
+  {
+    "name": "text",
+  },
+  {
+    name: "collection_search_index",
+  }
+);
+
 const collectionModel = mongoose.model("Collection", collectionSchema);
 
 module.exports = collectionModel;

@@ -94,7 +94,7 @@ async function searchDivision(req, res) {
     const db = req.db;
     const divModel = await db.model("Division");
 
-    const divisions = divModel.aggregate([
+    const divisions = await divModel.aggregate([
       { $match: { $text: { $search: searchString } } },
       { $limit: 5 },
       {
