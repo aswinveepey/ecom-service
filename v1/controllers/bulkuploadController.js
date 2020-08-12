@@ -23,7 +23,7 @@ async function bulkUploadInventory(req, res){
       {
         $set: {
           "inventory.$.mrp": mrp,
-          "inventory.$.territoryId": mongoose.Types.ObjectId(territoryId),
+          // "inventory.$.territoryId": mongoose.Types.ObjectId(territoryId),
           "inventory.$.quantity": quantity,
           "inventory.$.purchaseprice": purchaseprice,
           "inventory.$.sellingprice": sellingprice,
