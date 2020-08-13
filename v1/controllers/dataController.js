@@ -1,11 +1,11 @@
 // const Customer = require("../models/customer")
 // const Order = require("../models/order")
 
-async function getCustomerCount(req, res){
+async function getCustomerCount(req, res) {
   try {
     const db = req.db;
     const customerModel = await db.model("Customer");
-    
+
     customerData = await customerModel.aggregate([
       //first stage join auth to get status
       {
@@ -26,16 +26,15 @@ async function getCustomerCount(req, res){
         },
       },
     ]);
-    
-    res.json({ data: customerData });
 
+    res.json({ data: customerData });
   } catch (error) {
-    console.log(error)
-    res.status(400).json({error:error.message})
+    console.log(error);
+    res.status(400).json({ error: error.message });
   }
 }
 
-async function getGmvdata(req, res){
+async function getGmvdata(req, res) {
   try {
     const { filterBy } = req.query;
     const db = req.db;
@@ -43,23 +42,24 @@ async function getGmvdata(req, res){
 
     let startDate;
     let endDate;
-    const today = new Date()
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
     var tomorrow = new Date(today); //assigns todays date
-    tomorrow.setDate(tomorrow.getDate()+1); //increment by 1 day
+    tomorrow.setDate(tomorrow.getDate() + 1); //increment by 1 day
 
     switch (filterBy) {
-      case "month":
+      case "monthly":
         startDate = new Date(today.getFullYear(), today.getMonth(), 1);
         endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         break;
 
-      case "quarter":
+      case "quarterly":
         startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
         endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         break;
 
-      default: //default to today
+      default:
+        //default to today
         startDate = today;
         endDate = tomorrow;
         break;
@@ -86,45 +86,76 @@ async function getGmvdata(req, res){
         },
       },
     ]);
-    
-    res.json({data:gmvData})
 
+    res.json({ data: gmvData });
   } catch (error) {
-    console.log(error)
-    res.status(400).json({error:error.message})
+    console.log(error);
+    res.status(400).json({ error: error.message });
   }
 }
 
-async function getGmvTimeSeries(req, res){
+async function getGmvTimeSeries(req, res) {
   try {
+    const { filterBy } = req.query;
     const db = req.db;
     const orderModel = await db.model("Order");
-    
+    let format;
+
+    let startDate;
+    let endDate;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var tomorrow = new Date(today); //assigns todays date
+    tomorrow.setDate(tomorrow.getDate() + 1); //increment by 1 day
+
+    switch (filterBy) {
+      case "monthly":
+        //current month
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        format = "%Y-%m-%d";
+        break;
+
+      case "daily":
+        //today
+        startDate = today;
+        endDate = tomorrow;
+        format = "%H:%M:%S";
+        break;
+
+      default:
+        //default to quarter
+        startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        format = "%Y-%m-%d";
+        break;
+    }
+
     monthGmv = await orderModel.aggregate([
-      // FIrst Stage - Group based on created at
+      { $match: { createdat: { $gte: startDate, $lte: endDate } } },
+      // Second Stage - Group based on created at
       {
         $group: {
           _id: {
             $dateToString: {
               date: "$createdat",
-              format: "%Y-%m-%d",
+              format: format,
               timezone: "Asia/Kolkata",
             },
           },
           total: { $sum: "$amount.totalamount" },
         },
       },
-      // Second Stage Stage - Sort by _id (created at)
+      // Third Stage Stage - Sort by _id (created at)
       {
         $sort: { _id: 1 },
       },
     ]);
-    
-    res.json({data:monthGmv})
 
+    res.json({ data: monthGmv });
   } catch (error) {
-    console.log(error)
-    res.status(400).json({error:error.message})
+    console.log(error);
+    res.status(400).json({ error: error.message });
   }
 }
 

@@ -375,7 +375,7 @@ const orderSchema = mongoose.Schema({
     {
       type: {
         type: String,
-        enum: ["Card", "Bank", "COD", "Other"],
+        enum: ["Online", "Bank", "COD", "Other"],
       },
       ref: {
         type: String,
