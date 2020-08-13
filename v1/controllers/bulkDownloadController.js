@@ -272,10 +272,66 @@ async function getSkuDump(req, res){
     return res.status(400).json({error:error.message})
   }
 }
+async function getProductDump(req, res){
+  try {
+    const db = req.db;
+    const productModel = await db.model("Product");
+
+    products = await productModel.aggregate([
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      { $unwind: "$category" },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brand",
+          foreignField: "_id",
+          as: "brand",
+        },
+      },
+      {
+        $unwind: { path: "$brand", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $project: {
+          _id: 0,
+          productid: "$shortid",
+          name: "$name",
+          categoryname: "$category.name",
+          categoryid: "$category._id",
+          brandname: "$brand.name",
+          brandid: "$brand._id",
+          storagetype: "$storage.storagetype",
+          shelflife: "$storage.shelflife",
+          deadweight: "$logistics.deadweight",
+          volumetricweight: "$logistics.volumetricweight",
+          hsncode: "$gst.hsncode",
+          cgst: "$gst.cgst",
+          sgst: "$gst.sgst",
+          igst: "$gst.igst",
+          createdat: "$createdat",
+        },
+      },
+    ]);
+
+    return res.json({ data: skus });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({error:error.message})
+  }
+}
 
 module.exports = {
   getOrderItemDump,
   getCustomerDump,
   getInventoryDump,
   getSkuDump,
+  getProductDump,
 };

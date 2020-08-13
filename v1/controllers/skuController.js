@@ -58,32 +58,37 @@ async function getSkus(req, res) {
     //based on filter conditions update query
     if (filterBy) {
       //category filter
-      if (filterBy.toLowerCase()==="category"){
+      if (filterBy.toLowerCase() === "category") {
         if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
           throw new Error("Invalid Category ID passed as filter value");
         filterQuery = {
           "product.category": mongoose.Types.ObjectId(filterValue),
         };
         //brand filter
-      } else if (filterBy.toLowerCase()==="brand"){
+      } else if (filterBy.toLowerCase() === "brand") {
         if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
           throw new Error("Invalid Brand ID passed as filter value");
         filterQuery = {
           "product.brand": mongoose.Types.ObjectId(filterValue),
         };
         //attribute filter
-      } else if (filterBy.toLowerCase()==="attributes"){
-        if (!filterValue)
-          throw new Error("Invalid attribute value");
+      } else if (filterBy.toLowerCase() === "attributes") {
+        if (!filterValue) throw new Error("Invalid attribute value");
         filterQuery = {
           "product.attributes.value": { $in: filterValue?.split(",") },
         };
         //top products filter
-      } else if (filterBy.toLowerCase()==="top"){
-        const topSkus = await skuService.getTopOrderedSkus({db:db});
+      } else if (filterBy.toLowerCase() === "top") {
+        const topSkus = await skuService.getTopOrderedSkus({ db: db });
         // get top skus by ID
         filterQuery = {
           _id: { $in: topSkus },
+        };
+      } else if (filterBy.toLowerCase() === "product") {
+        if (filterValue && !mongoose.Types.ObjectId.isValid(filterValue))
+          throw new Error("Invalid Product ID passed as filter value");
+        filterQuery = {
+          "product._id": mongoose.Types.ObjectId(filterValue),
         };
       }
     }
