@@ -117,8 +117,63 @@ async function bulkUploadSku(req, res){
     return res.status(400).json({message:error.message})
   }
 }
+async function bulkUploadProduct(req, res){
+  try {
+    const productId = req.body["SKU ID"];
+    const productname = req.body["Product Name"];
+    const categoryId = req.body["SKU ID"];
+    const brandId = req.body["SKU ID"];
+    const storageType = req.body["Storage Type"];
+    const shelfLife = req.body["Shelf Life"];
+    const deadweight = req.body["Deadweight"];
+    const volumetricWeight = req.body["Volumetric Weight"];
+    const hsncode = req.body["HSN Code"];
+    const cgst = req.body["CGST"];
+    const sgst = req.body["SGST"];
+    const igst = req.body["IGST"];
+    
+    const db = req.db;
+    const productModel = await db.model("Product");
+    const categoryModel = await db.model("Category");
+    const brandModel = await db.model("brand");
+    
+    const product = await productModel.findOne({shortid:productId}).lean()
+    if(!product) throw new Error("Invalid Product")
+
+    const category = await categoryModel.findOne({ _id: categoryId }).lean();
+    if(!product) throw new Error("Invalid Product")
+
+    const brand = await brandModel.findOne({ _id: brandId }).lean();
+    if(!product) throw new Error("Invalid Product")
+
+    await productModel.updateOne(
+      { shortid: productId },
+      {
+        name: productname,
+        category: category._id,
+        brand: brand._id,
+        "storage.storagetype": storageType,
+        "storage.shelflife": shelfLife,
+        "logistics.deadweight": deadweight,
+        "logistics.volumetricweight": volumetricWeight,
+        "gst.hsncode": hsncode,
+        "gst.cgst": cgst,
+        "gst.igst": igst,
+        "gst.sgst": sgst,
+      },
+      { upsert: true }
+    );
+    
+    return res.json({ status: "succesful" });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({message:error.message})
+  }
+}
 
 module.exports = {
   bulkUploadInventory,
   bulkUploadSku,
+  bulkUploadProduct,
 };

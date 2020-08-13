@@ -5,8 +5,21 @@ async function getCollections(req, res) {
   try {
     const db = req.db;
     const collectionModel = await db.model("Collection");
+    let collections;
 
-    const collections = await collectionModel.find().lean();
+    if (req.user){
+      collections = await collectionModel
+        .find()
+        .limit(250)
+        .sort({ createdat: -1 })
+        .lean();
+    } else {
+      collections = await collectionModel
+        .find({status:true})
+        .limit(10)
+        .sort({ createdat: -1 })
+        .lean();
+    }
     return res.json({ data: collections });
 
   } catch (error) {

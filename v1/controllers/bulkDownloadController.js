@@ -320,7 +320,7 @@ async function getProductDump(req, res){
       },
     ]);
 
-    return res.json({ data: skus });
+    return res.json({ data: products });
 
   } catch (error) {
     console.log(error)

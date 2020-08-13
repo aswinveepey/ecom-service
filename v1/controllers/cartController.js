@@ -61,7 +61,9 @@ async function addtoCart(req, res) {
       },
       { upsert: true, new: true }
     );
-    cart.cartitems.push({ sku: skuData._id, quantity: quantity });
+    if(quantity>0){
+      cart.cartitems.push({ sku: skuData._id, quantity: quantity });
+    }
     await cart.save();
     
     return res.json({ data: cart, message:"Cart item added succesfully" });
