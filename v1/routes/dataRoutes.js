@@ -7,6 +7,8 @@ const { user } = require("../middlewares/user");
 const {
   validateInventoryBulkUpload,
   validateSkuBulkUpload,
+  validateProductBulkUpload,
+  validateOrderItemBulkUpload,
 } = require("../validators/bulkUploadValidator");
 const { validate } = require("../validators/validator");
 
@@ -41,6 +43,18 @@ dataRouter.post(
   user,
   validate(validateSkuBulkUpload),
   bulkuploadController.bulkUploadSku
+);
+dataRouter.post(
+  "/bulkUploadProduct",
+  user,
+  validate(validateProductBulkUpload),
+  bulkuploadController.bulkUploadProduct
+);
+dataRouter.post(
+  "/bulkUploadOrderItem",
+  user,
+  validate(validateOrderItemBulkUpload),
+  bulkuploadController.bulkUploadOrderItem
 );
 
 module.exports = { dataRouter };

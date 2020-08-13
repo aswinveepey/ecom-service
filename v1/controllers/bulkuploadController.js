@@ -65,7 +65,7 @@ async function bulkUploadInventory(req, res){
 async function bulkUploadSku(req, res){
   try {
     const skuId = req.body["SKU ID"];
-    const productId = req.body["Product ID"];
+    // const productId = req.body["Product ID"];
     const skuName = req.body["SKU Name"];
     const mrp = req.body["MRP"];
     const discount = req.body["Discount"];
@@ -85,14 +85,13 @@ async function bulkUploadSku(req, res){
     const productModel = await db.model("Product");
     
     const product = await productModel.findOne({shortid:productId}).lean()
-    
     if(!product) throw new Error("Invalid Product")
 
     await skuModel.updateOne(
       { shortid: skuId },
       {
         name: skuName,
-        product: product._id,
+        // product: product._id,
         "price.mrp": mrp,
         "price.discount": discount,
         "price.sellingprice": sellingPrice,
@@ -119,10 +118,10 @@ async function bulkUploadSku(req, res){
 }
 async function bulkUploadProduct(req, res){
   try {
-    const productId = req.body["SKU ID"];
+    const productId = req.body["Product ID"];
     const productname = req.body["Product Name"];
-    const categoryId = req.body["SKU ID"];
-    const brandId = req.body["SKU ID"];
+    const categoryId = req.body["Category ID"];
+    const brandId = req.body["Brand ID"];
     const storageType = req.body["Storage Type"];
     const shelfLife = req.body["Shelf Life"];
     const deadweight = req.body["Deadweight"];
@@ -135,16 +134,13 @@ async function bulkUploadProduct(req, res){
     const db = req.db;
     const productModel = await db.model("Product");
     const categoryModel = await db.model("Category");
-    const brandModel = await db.model("brand");
-    
-    const product = await productModel.findOne({shortid:productId}).lean()
-    if(!product) throw new Error("Invalid Product")
+    const brandModel = await db.model("Brand");
 
     const category = await categoryModel.findOne({ _id: categoryId }).lean();
-    if(!product) throw new Error("Invalid Product")
+    if (!category) throw new Error("Invalid Category");
 
     const brand = await brandModel.findOne({ _id: brandId }).lean();
-    if(!product) throw new Error("Invalid Product")
+    if (!brand) throw new Error("Invalid Brand");
 
     await productModel.updateOne(
       { shortid: productId },
@@ -171,9 +167,46 @@ async function bulkUploadProduct(req, res){
     return res.status(400).json({message:error.message})
   }
 }
+async function bulkUploadOrderItem(req, res){
+  try {
+    const orderId = req.body["Order ID"];
+    const orderItemId = req.body["Order Item ID"];
+    const confirmedQty = req.body["Confirmed Qty"];
+    const shippedQty = req.body["Shipped Qty"];
+    const deliveredQty = req.body["Delivered Qty"];
+    const returnedQty = req.body["Returned Qty"];
+    const status = req.body["Status"];
+    
+    const db = req.db;
+    const orderModel = await db.model("Order");
+
+    const order = await orderModel.findOneAndUpdate(
+      { shortid: orderId, "orderitems.shortid": orderItemId },
+      {
+        $set: {
+          "orderitems.$.quantity.confirmed": confirmedQty,
+          "orderitems.$.quantity.shipped": shippedQty,
+          "orderitems.$.quantity.delivered": deliveredQty,
+          "orderitems.$.quantity.returned": returnedQty,
+          "orderitems.$.status": status,
+        },
+      },
+      { new: true }
+    );
+    
+    await order.calculateTotals();
+
+    return res.json({ status: "succesful" });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({message:error.message})
+  }
+}
 
 module.exports = {
   bulkUploadInventory,
   bulkUploadSku,
   bulkUploadProduct,
+  bulkUploadOrderItem,
 };
