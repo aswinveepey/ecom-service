@@ -314,7 +314,7 @@ async function updateSku(req, res) {
 
     user = req.user;
     //loop through inventory and set territory data per model
-    inventory.forEach((data) => {
+    inventory?.forEach((data) => {
       if (
         !mongoose.Types.ObjectId.isValid(
           data.territory?._id

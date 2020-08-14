@@ -45,7 +45,17 @@ const validateProductBulkUpload = [
   check("IGST").exists().isFloat({ min: 0 }),
 ];
 const validateOrderItemBulkUpload = [
-  check("Status").exists(),
+  check("Status")
+    .exists()
+    .isIn([
+      "Booked",
+      // "Cancelled",
+      "Confirmed",
+      "Shipped",
+      "Delivered",
+      "Returned",
+      "Partial Delivery",
+    ]),
   check("Order ID").exists(),
   check("Order Item ID").exists(),
   check("Confirmed Qty").optional({ nullable: true }).isInt({ min: 0 }),

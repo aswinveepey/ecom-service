@@ -65,7 +65,7 @@ async function bulkUploadInventory(req, res){
 async function bulkUploadSku(req, res){
   try {
     const skuId = req.body["SKU ID"];
-    // const productId = req.body["Product ID"];
+    const productId = req.body["Product ID"];
     const skuName = req.body["SKU Name"];
     const mrp = req.body["MRP"];
     const discount = req.body["Discount"];
@@ -87,11 +87,31 @@ async function bulkUploadSku(req, res){
     const product = await productModel.findOne({shortid:productId}).lean()
     if(!product) throw new Error("Invalid Product")
 
-    await skuModel.updateOne(
-      { shortid: skuId },
-      {
+    if (skuId?.trim()!=="") {
+      await skuModel.updateOne(
+        { shortid: skuId },
+        {
+          name: skuName,
+          product: product._id,
+          "price.mrp": mrp,
+          "price.discount": discount,
+          "price.sellingprice": sellingPrice,
+          "price.purchaseprice": purchasePrice,
+          "price.shipping": shipping,
+          "price.installation": installation,
+          "bulkdiscount.threshold": bulkThreshold,
+          "bulkdiscount.discount": bulkDiscount,
+          "bulkdiscount.discount": bulkDiscount,
+          "quantityrules.minorderqty": minOrderQty,
+          "quantityrules.minorderqtystep": minOrderQtyStep,
+          "quantityrules.maxorderqty": maxOrderQty,
+          status: status,
+        }
+      );
+    } else {
+      await skuModel.create({
         name: skuName,
-        // product: product._id,
+        product: product._id,
         "price.mrp": mrp,
         "price.discount": discount,
         "price.sellingprice": sellingPrice,
@@ -105,9 +125,8 @@ async function bulkUploadSku(req, res){
         "quantityrules.minorderqtystep": minOrderQtyStep,
         "quantityrules.maxorderqty": maxOrderQty,
         status: status,
-      },
-      { upsert: true }
-    );
+      });
+    }
     
     return res.json({ status: "succesful" });
 
@@ -142,9 +161,25 @@ async function bulkUploadProduct(req, res){
     const brand = await brandModel.findOne({ _id: brandId }).lean();
     if (!brand) throw new Error("Invalid Brand");
 
-    await productModel.updateOne(
-      { shortid: productId },
-      {
+    if (productId?.trim()!=="") {
+      await productModel.updateOne(
+        { shortid: productId },
+        {
+          name: productname,
+          category: category._id,
+          brand: brand._id,
+          "storage.storagetype": storageType,
+          "storage.shelflife": shelfLife,
+          "logistics.deadweight": deadweight,
+          "logistics.volumetricweight": volumetricWeight,
+          "gst.hsncode": hsncode,
+          "gst.cgst": cgst,
+          "gst.igst": igst,
+          "gst.sgst": sgst,
+        }
+      );
+    } else {
+      await productModel.create({
         name: productname,
         category: category._id,
         brand: brand._id,
@@ -156,9 +191,8 @@ async function bulkUploadProduct(req, res){
         "gst.cgst": cgst,
         "gst.igst": igst,
         "gst.sgst": sgst,
-      },
-      { upsert: true }
-    );
+      });
+    }
     
     return res.json({ status: "succesful" });
 
@@ -193,6 +227,8 @@ async function bulkUploadOrderItem(req, res){
       },
       { new: true }
     );
+
+    if(!order) throw new Error("Invalid Order ID")
     
     await order.calculateTotals();
 
