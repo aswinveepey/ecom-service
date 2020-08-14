@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 async function bulkUploadInventory(req, res){
   try {
-    const inventoryId = mongoose.Types.ObjectId(req.body["Inventory ID"]);
+    const inventoryId = req.body["Inventory ID"];
     const territoryId = mongoose.Types.ObjectId(req.body["Territory ID"]);
     const skuId = req.body["SKU ID"];
     const quantity = req.body["Quantity"];
@@ -17,9 +17,12 @@ async function bulkUploadInventory(req, res){
     const db = req.db;
     const skuModel = await db.model("Sku");
 
-    if(inventoryId){
+    if (inventoryId && mongoose.Types.ObjectId.isValid(inventoryId)) {
       await skuModel.updateOne(
-        { shortid: skuId, "inventory._id": inventoryId },
+        {
+          shortid: skuId,
+          "inventory._id": mongoose.Types.ObjectId(inventoryId),
+        },
         {
           $set: {
             "inventory.$.mrp": mrp,
@@ -35,7 +38,7 @@ async function bulkUploadInventory(req, res){
         }
       );
     } else {
-    await skuModel.updateOne(
+      await skuModel.updateOne(
         { shortid: skuId },
         {
           $push: {
