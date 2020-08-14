@@ -1,14 +1,10 @@
 const mongoose = require("mongoose");
-// const Order = require("../models/order");
-// const Cart = require("../models/cart");
-// const Sku = require("../models/sku");
 const skuRules = require("../services/orderValidations")
 const territoryMappingService = require("../services/territoryMappingService")
 const inventoryService = require("../services/inventoryService");
 
 // add items to cart
 // create cart if not exists
-
 async function getSelfCart(req, res) {
   try {
     const db = req.db;
@@ -37,21 +33,26 @@ async function addtoCart(req, res) {
 
     customer = req.customer;
     var { sku, quantity } = req.body;
-    
+
     //validate customer
     if(!customer) throw new Error("Customer Not Found");
     //validate SKU
     if (!mongoose.Types.ObjectId.isValid(sku)) throw new Error("Invalid SKU ID provided")
-    
+
     //fetch sku data
     skuData = await skuModel.findOne({ _id: sku, status: true });
 
     // validate sku data
     if (!skuData) throw new Error("SKU OOS or inactive");
-    
+
     //Validate quantity rules
-    await skuRules.validateSkuQuantityRules({sku:skuData, quantity:quantity})
-    
+    if(quantity!==0){
+      await skuRules.validateSkuQuantityRules({
+        sku: skuData,
+        quantity: quantity,
+      });
+    }
+
     // Update Cart
     cart = await cartModel.findOneAndUpdate(
       { customer: customer._id },
@@ -61,9 +62,13 @@ async function addtoCart(req, res) {
       },
       { upsert: true, new: true }
     );
+
+    //0 qty cart items are pulled in the previous step and not added back
     if(quantity>0){
       cart.cartitems.push({ sku: skuData._id, quantity: quantity });
     }
+
+    //save & return
     await cart.save();
     
     return res.json({ data: cart, message:"Cart item added succesfully" });
@@ -94,10 +99,10 @@ async function checkout(req, res) {
     let payments = [];
     let territoriesArray = [];
     let territoryQuery = {};
-    
+
     currentCustomer = req.customer;
     if(!currentCustomer) throw new Error("Customer Not Found");
-    
+
     //assign customer to customer.customer
     customer = {}; //if not passed through request body
     customer.customer = currentCustomer;
@@ -200,10 +205,8 @@ async function checkout(req, res) {
     return res.json({ data: order, message:"Succesfully Placed the order" });
 
   } catch (error) {
-
     console.log(error);
     return res.status(400).json({ error: error.message });
-
   }
 }
 
