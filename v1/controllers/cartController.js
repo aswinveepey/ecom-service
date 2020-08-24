@@ -170,6 +170,7 @@ async function checkout(req, res) {
         }
         //assign sku to order item
         orderitem.sku = sku;
+        orderitem.inventory = sku.inventory[0];
         orderitem.quantity = {};
         orderitem.quantity.booked = item.quantity;
         //capture territory information

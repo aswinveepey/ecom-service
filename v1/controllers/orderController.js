@@ -91,12 +91,10 @@ async function getAllOrders(req, res) {
 
 async function customerOrderhistory(req, res) {
   try {
-    auth = req.auth._id;
-    const db = req.db;
-    const customerModel = await db.model("Customer");
+    const {db, customer} = req;
+
     const orderModel = await db.model("Order");
 
-    customer = await customerModel.findOne({ auth: auth._id });
     if(!customer) throw new Error("Customer Not Found")
 
     orders = await orderModel
@@ -114,10 +112,11 @@ async function customerOrderhistory(req, res) {
 async function getOneOrder(req, res) {
   try {
     const { orderId } = req.params;
-    const db = req.db;
+    const {db} = req;
+
     const orderModel = await db.model("Order");
 
-    order = await orderModel.findById(orderId).lean();
+    order = await orderModel.findById(orderId).populate("orderitems.sku.product").lean();
     return res.json({ data: order });
   } catch (error) {
     return res.status(400).json({ error: error.message });
@@ -231,6 +230,7 @@ async function createOrder(req, res) {
           throw new Error("OOS for selected territory");
         }
         //capture territory information
+        item.sku.inventory = sku.inventory[0];
         item.quantity.territory =
           sku.inventory[0].territory;
         //set default status

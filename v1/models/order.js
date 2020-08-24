@@ -265,6 +265,53 @@ const orderSchema = mongoose.Schema({
           required: true,
         },
       },
+      inventory: {
+        territory: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Territory",
+          required: true,
+        },
+        quantity: {
+          type: mongoose.Schema.Types.Number,
+          required: true,
+          min: 0,
+        },
+        mrp: {
+          type: Double,
+          required: true,
+          min: 0,
+        },
+        discount: {
+          type: Double,
+          required: true,
+          default: 0,
+          min: 0,
+        },
+        sellingprice: {
+          type: Double,
+          required: true,
+          min: 0,
+        },
+        purchaseprice: {
+          type: Double,
+          required: true,
+          min: 0,
+        },
+        shippingcharges: {
+          type: Double,
+          required: true,
+          min: 0,
+        },
+        installationcharges: {
+          type: Double,
+          required: true,
+          min: 0,
+        },
+        status: {
+          type: Boolean,
+          required: true,
+        },
+      },
       quantity: {
         booked: {
           type: mongoose.Schema.Types.Number,
