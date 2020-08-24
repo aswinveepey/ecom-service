@@ -109,6 +109,39 @@ async function customerOrderhistory(req, res) {
   }
 }
 
+async function cancelOrder(req, res) {
+  try {
+    const {db, customer} = req;
+    const { orderId, orderItemId } = req.body;
+
+    if (!(orderId && mongoose.Types.ObjectId.isValid(orderId)))
+      throw new Error("Invalid order id")
+    
+    if (!(orderItemId && mongoose.Types.ObjectId.isValid(orderItemId)))
+      throw new Error("Invalid order item id");
+
+    if (!customer) throw new Error("Customer Not Found");
+    
+    const orderModel = await db.model("Order");
+
+    orders = await orderModel.updateOne(
+      {
+        _id: mongoose.Types.ObjectId(orderId),
+        "orderitems._id": mongoose.Types.ObjectId(orderItemId),
+      },
+      {
+        $set: {
+          "orderitems.$.status": "Cancelled",
+        },
+      }
+    );
+    return res.json({ status: "succesful" });
+
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+}
+
 async function getOneOrder(req, res) {
   try {
     const { orderId } = req.params;
@@ -384,4 +417,5 @@ module.exports = {
   updateOrder,
   searchOrder,
   customerOrderhistory,
+  cancelOrder,
 };
