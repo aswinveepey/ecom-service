@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
-// const Order = require("../models/order");
-// const Customer = require("../models/customer");
-// const SKU = require("../models/sku");
+var winston = require("../../logger/winston");
 const skuRules = require("../services/orderValidations");
 const territoryMappingService = require("../services/territoryMappingService");
 const inventoryService = require("../services/inventoryService");
@@ -410,6 +408,21 @@ async function searchOrder(req, res) {
   }
 }
 
+async function bulkInquiry(req, res) {
+  try {
+    const { customer } = req;
+    throw new Error("Test Error")
+    res.json({ data: "Input Received" });
+  } catch (error) {
+    winston.error(
+      `${error.status || 400} - ${error.message} - ${req.originalUrl} - ${
+        req.method
+      } - ${req.ip}`
+    );
+    return res.status(400).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getAllOrders,
   createOrder,
@@ -418,4 +431,5 @@ module.exports = {
   searchOrder,
   customerOrderhistory,
   cancelOrder,
+  bulkInquiry,
 };

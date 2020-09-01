@@ -4,6 +4,7 @@ var morgan = require("morgan");
 var bodyParser = require("body-parser");
 var cors = require("cors");
 var compression = require("compression");
+var winston = require("./logger/winston");
 const { initClientDbConnection } = require("./v1/db/dbutil");
 const {processTenantDb} = require('./v1/middlewares/tenant')
 
@@ -39,7 +40,7 @@ app.use(Sentry.Handlers.requestHandler());
 //cors
 app.use(cors());
 //logger middleware and config
-app.use(morgan("tiny"));
+app.use(morgan("combined"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 // compress all responses
