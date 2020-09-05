@@ -43,6 +43,10 @@ async function generateOtp(req, res){
     const db = req.db;
     const authModel = await db.model("Auth");
 
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioclient = require("twilio")(accountSid, authToken);
+
     auth = await authModel.findOne({ mobilenumber: mobilenumber });
     if (!auth){
       auth = await authModel.create({
@@ -52,8 +56,13 @@ async function generateOtp(req, res){
     }
     const otp = await auth.generateOtp();
 
-    //Dangerous - This should be handled via SMS only - Retain for testing purposes
-    return res.json({ otp: otp, message: "OTP generated" });
+    await twilioclient.messages.create({
+      body: `Use OTP ${otp} to login`,
+      from: "+12163036659",
+      to: `+91${mobilenumber}`,
+    });
+
+    return res.json({message: "OTP generated" });
 
   } catch (err) {
 

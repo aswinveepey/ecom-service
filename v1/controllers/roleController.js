@@ -28,7 +28,8 @@ async function createRoles(req, res){
       role.save();
     });
     return res.json({message: 'Role Added Succesfully'})
-  } catch (error) {Cookies.get("token");
+  } catch (error) {
+    
     return res.status(400).json({error: error})
   }
 }
