@@ -1,12 +1,11 @@
-// const Role = require('../models/roles')
-// const permissionModel = require('../models/permission')
+const mongoose = require("mongoose");
 
 async function getAllLeads(req, res) {
   try {
     const db = req.db;
     const leadModel = await db.model("Lead");
 
-    const leads = await leadModel.find().populate("account").lean();
+    const leads = await leadModel.find().populate("account").populate("owner").lean();
     return res.json({ data: leads });
   } catch (error) {
     return res.status(400).json({ error: error.message });
@@ -24,8 +23,7 @@ async function getOneLead(req, res) {
     lead = await leadModel
       .findById(leadId)
       .populate("account")
-      .populate({ path: "auth", select: "username email mobilenumber status" })
-      .populate("address")
+      .populate("owner")
       .lean();
     return res.json({ data: lead });
   } catch (error) {
@@ -47,6 +45,7 @@ async function createLead(req, res) {
       gst,
       score,
       source,
+      owner,
     } = req.body;
 
     //db model
@@ -57,16 +56,21 @@ async function createLead(req, res) {
       throw new Error("Invalid Account ID");
     }
 
+    if (!mongoose.Types.ObjectId.isValid(owner._id)) {
+      throw new Error("Invalid Owner ID");
+    }
+
     lead = await leadModel.create({
       firstname: firstname,
       lastname: lastname,
       type: type,
-      account: account._id,
+      account: account?._id,
       mobile: mobile,
       address: address,
       gst: gst,
       score: score,
       source: source,
+      owner: owner._id,
     });
     
     return res.json({ lead: lead, message: "Lead Added Succesfully" });
@@ -81,6 +85,7 @@ async function createLead(req, res) {
 async function updateLead(req, res) {
   try {
     var {
+      _id,
       firstname,
       lastname,
       type,
@@ -90,12 +95,17 @@ async function updateLead(req, res) {
       gst,
       score,
       source,
+      owner
     } = req.body;
     const db = req.db;
     const leadModel = await db.model("Lead");
 
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       throw new Error("Invalid Lead ID");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(owner._id)) {
+      throw new Error("Invalid Owner ID");
     }
 
     if (account && !mongoose.Types.ObjectId.isValid(account._id)) {
@@ -109,12 +119,13 @@ async function updateLead(req, res) {
           firstname: firstname,
           lastname: lastname,
           type: type,
-          account: account._id,
+          account: account?._id,
           mobile: mobile,
           address: address,
           gst: gst,
           score: score,
           source: source,
+          owner:owner._id,
           updatedat: Date.now(),
         },
       },

@@ -27,6 +27,29 @@ const leadSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
   },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  // opportunities: [
+  //   {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "Opportunity",
+  //   },
+  // ],
+  // quotes: [
+  //   {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "Quote",
+  //   },
+  // ],
+  // activities: [
+  //   {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "Activity",
+  //   },
+  // ],
   mobile: {
     type: String,
     required: true,
@@ -42,13 +65,13 @@ const leadSchema = mongoose.Schema({
     type: String,
     required: true,
     enum: ["hot", "warm", "cold"],
-    default:"warm"
+    default: "warm",
   },
   source: {
     type: String,
     required: true,
     enum: ["walkin", "website"],
-    default:"walkin"
+    default: "walkin",
   },
   createdat: {
     type: Date,

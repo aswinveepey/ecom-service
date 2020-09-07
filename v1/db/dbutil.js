@@ -14,6 +14,7 @@ require("../models/role");
 require("../models/sku");
 require("../models/territory");
 require("../models/user");
+require("../models/lead");
 
 const clientOption = {
   useUnifiedTopology: true,
