@@ -55,6 +55,9 @@ const leadSchema = mongoose.Schema({
     required: true,
     unique: true,
   },
+  email: {
+    type: String,
+  },
   address: {
     type: String,
   },
@@ -72,6 +75,11 @@ const leadSchema = mongoose.Schema({
     required: true,
     enum: ["walkin", "website"],
     default: "walkin",
+  },
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
   createdat: {
     type: Date,

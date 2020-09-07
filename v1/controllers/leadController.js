@@ -24,6 +24,7 @@ async function getOneLead(req, res) {
       .findById(leadId)
       .populate("account")
       .populate("owner")
+      .populate("creator")
       .lean();
     return res.json({ data: lead });
   } catch (error) {
@@ -50,6 +51,7 @@ async function createLead(req, res) {
 
     //db model
     const db = req.db;
+    const user = req.user;
     const leadModel = await db.model("Lead");
 
     if (account && !mongoose.Types.ObjectId.isValid(account._id)) {
@@ -71,6 +73,7 @@ async function createLead(req, res) {
       score: score,
       source: source,
       owner: owner._id,
+      creator: user._id,
     });
     
     return res.json({ lead: lead, message: "Lead Added Succesfully" });
