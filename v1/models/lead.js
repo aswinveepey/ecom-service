@@ -32,24 +32,18 @@ const leadSchema = mongoose.Schema({
     ref: "User",
     required: true,
   },
-  // opportunities: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Opportunity",
-  //   },
-  // ],
-  // quotes: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Quote",
-  //   },
-  // ],
-  // activities: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Activity",
-  //   },
-  // ],
+  quotes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Quote",
+    },
+  ],
+  activities: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Activity",
+    },
+  ],
   mobile: {
     type: String,
     required: true,

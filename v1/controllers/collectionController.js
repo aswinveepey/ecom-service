@@ -4,22 +4,24 @@ const mongoose = require("mongoose");
 async function getCollections(req, res) {
   try {
     const db = req.db;
+    const { filterBy } = req.query;
     const collectionModel = await db.model("Collection");
     let collections;
 
-    if (req.user){
-      collections = await collectionModel
-        .find()
-        .limit(250)
-        .sort({ createdat: -1 })
-        .lean();
+    if (filterBy && filterBy.toLowerCase() === "active") {
+        collections = await collectionModel
+          .find({ status: true })
+          .limit(10)
+          .sort({ createdat: -1 })
+          .lean();
     } else {
-      collections = await collectionModel
-        .find({status:true})
-        .limit(10)
-        .sort({ createdat: -1 })
-        .lean();
-    }
+        collections = await collectionModel
+          .find()
+          .limit(250)
+          .sort({ createdat: -1 })
+          .lean();
+      }
+
     return res.json({ data: collections });
 
   } catch (error) {

@@ -33,18 +33,18 @@ const opportunitySchema = mongoose.Schema({
     ref: "User",
     required: true,
   },
-  // quotes: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Quote",
-  //   },
-  // ],
-  // activities: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Activity",
-  //   },
-  // ],
+  quotes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Quote",
+    },
+  ],
+  activities: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Activity",
+    },
+  ],
   items: [
     {
       sku: {
